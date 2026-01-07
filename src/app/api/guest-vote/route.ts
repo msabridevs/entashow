@@ -49,3 +49,4 @@ export async function DELETE(req: Request) {
   if (error) return new NextResponse("failed", { status: 400 });
   return NextResponse.json({ ok: true });
 }
+}
