@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+export const dynamic = "force-dynamic";
+
 type SlotRow = { work_id: string; genre_id: string };
 type WorkRow = { id: string; title_ar: string; author_ar?: string | null };
 type WorkRow = { id: string; title_ar?: string | null; author_ar?: string | null };
@@ -34,11 +36,73 @@ export default function ArabicExplore() {
     }
     setFingerprint(fp);
 @@ -93,109 +93,103 @@ export default function ArabicExplore() {
+  }, []);
+
+  useEffect(() => {
+    if (!fingerprint) return;
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint]);
+
+  async function load() {
+    if (!fingerprint) return;
+    setMsg("");
+
+    const { data: activeRound, error: roundError } = await supabase
+      .from("rounds")
+      .select("id")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (roundError || !activeRound?.id) {
+      setRoundId(null);
+      setSlots([]);
+      setMsg("لا توجد جولة نشطة حالياً.");
+      return;
+    }
+
+    const activeRoundId = activeRound.id;
+    setRoundId(activeRoundId);
+
+    const { data: slotRows } = await supabase
+      .from("round_slots")
+      .select("work_id, genre_id")
+      .eq("round_id", activeRoundId);
+
+    const normalizedSlots = slotRows ?? [];
+    setSlots(normalizedSlots);
+
+    const workIds = Array.from(new Set(normalizedSlots.map((s) => s.work_id)));
+    const genreIds = Array.from(new Set(normalizedSlots.map((s) => s.genre_id)));
+
+    const { data: workRows } = workIds.length
+      ? await supabase.from("works").select("id, title_ar, author_ar").in("id", workIds)
+      : { data: [] as WorkRow[] };
+
+    const { data: genreRows } = genreIds.length
+      ? await supabase.from("genres").select("id, name_ar, sort_order").in("id", genreIds)
+      : { data: [] as GenreRow[] };
+
+    const workMap: Record<string, WorkRow> = {};
+    (workRows ?? []).forEach((w) => {
+      workMap[w.id] = w;
+    });
+    setWorks(workMap);
+
+    const genreMap: Record<string, GenreRow> = {};
+    (genreRows ?? []).forEach((g) => {
+      genreMap[g.id] = g;
+    });
+    setGenres(genreMap);
+
+    const { data: allVotes } = await supabase
+      .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId);
 
     const c: Record<string, number> = {};
     (allVotes ?? []).forEach((v: any) => {
+    (allVotes ?? []).forEach((v: { work_id: string }) => {
       c[v.work_id] = (c[v.work_id] ?? 0) + 1;
     });
     setCounts(c);
@@ -51,6 +115,7 @@ export default function ArabicExplore() {
       .eq("fingerprint", fingerprint);
 
     setUserVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
+    setUserVotes(new Set((myVotes ?? []).map((v: { work_id: string }) => v.work_id)));
   }
 
   async function handleVoteToggle(workId: string) {
@@ -114,6 +179,10 @@ export default function ArabicExplore() {
         ملاحظة: التراجع متاح طالما لم يتغيّر معرف الجهاز (إذا تم مسح بيانات المتصفح قد لا يعمل التراجع).
       </p>
 
+      {msg ? (
+        <div style={{ marginBottom: 16, color: "#a12b2b", fontWeight: 600 }}>{msg}</div>
+      ) : null}
+
       {sorted.map((s) => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
@@ -137,12 +206,50 @@ export default function ArabicExplore() {
               justifyContent: "space-between",
               alignItems: "center",
               backgroundColor: "#fdfdfd",
+              gap: 12,
             }}
           >
             <div>
               <div style={{ color: "#555", fontSize: 13 }}>{genreName}</div>
               <strong style={{ fontSize: 20, color: "#000" }}>{title}</strong>
+              {w?.author_ar ? (
+                <div style={{ color: "#666", marginTop: 6, fontSize: 13 }}>{w.author_ar}</div>
+              ) : null}
             </div>
 
             <div
               style={{
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ color: "#333", fontSize: 14 }}>الأصوات: {count}</span>
+              <button
+                type="button"
+                onClick={() => handleVoteToggle(s.work_id)}
+                style={{
+                  background: hasVoted ? "#f2f2f2" : "#111",
+                  color: hasVoted ? "#111" : "#fff",
+                  border: "1px solid #111",
+                  padding: "8px 14px",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
+              >
+                {hasVoted ? "تراجع" : "صوّت"}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {!sorted.length ? (
+        <p style={{ color: "#666" }}>لا توجد أعمال متاحة حالياً.</p>
+      ) : null}
+    </main>
+  );
+}
