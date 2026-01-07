@@ -74,7 +74,7 @@ export default function ArabicExplore() {
     });
 
     if (!res.ok) {
-      setMsg(hasVoted ? "تعذّر التراجع. ربما تغيّر معرف الجهاز." : "لقد تعذّر التصويت. حاول مرة أخرى.");
+      setMsg(hasVoted ? "تعذّر التراجع. ربما تغيّر معرف الجهاز." : "تعذّر التصويت. حاول مرة أخرى.");
       return;
     }
 
