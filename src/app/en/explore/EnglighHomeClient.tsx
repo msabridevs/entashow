@@ -1,9 +1,9 @@
+// src/app/en/EnglishHomeClient.tsx
+"use client";
+
 import React from "react";
 
-// ✅ This ensures the page is always fresh on Vercel
-export const dynamic = "force-dynamic";
-
-export default function EnglishHome() {
+export default function EnglishHomeClient() {
   return (
     <main
       style={{
@@ -26,7 +26,7 @@ export default function EnglishHome() {
             border: "1px solid rgba(255,255,255,0.18)",
             background: "rgba(255,255,255,0.06)",
             backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)", // Support for Safari
+            WebkitBackdropFilter: "blur(8px)",
             marginBottom: 18,
             fontSize: 13,
             fontWeight: 600,
