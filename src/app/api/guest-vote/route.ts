@@ -20,23 +20,9 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   const url = new URL(req.url);
-  
-  // FIXED: Removed the duplicate 'const' declarations. 
-  // Using 'let' allows the fallback reassignment in the if-block below.
-  let roundId = url.searchParams.get("roundId");
-  let workId = url.searchParams.get("workId");
-  let fingerprint = url.searchParams.get("fingerprint");
-
-  if (!roundId || !workId || !fingerprint) {
-    const body = await req.json().catch(() => null);
-    roundId = roundId ?? body?.roundId ?? null;
-    workId = workId ?? body?.workId ?? null;
-    fingerprint = fingerprint ?? body?.fingerprint ?? null;
-  }
-
-  if (!roundId || !workId || !fingerprint) {
-    return new NextResponse("missing params", { status: 400 });
-  }
+  const roundId = url.searchParams.get("roundId");
+  const workId = url.searchParams.get("workId");
+  const fingerprint = url.searchParams.get("fingerprint");
 
   const supabase = await createServerSupabaseClient();
 
@@ -49,4 +35,3 @@ export async function DELETE(req: Request) {
   if (error) return new NextResponse("failed", { status: 400 });
   return NextResponse.json({ ok: true });
 }
-// FIXED: Removed the extra closing brace '}' that was causing a syntax error.

@@ -1,15 +1,30 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-// FIXED: Removed duplicate export and duplicate dynamic config
-export const dynamic = "force-dynamic";
+/* ---------- Types ---------- */
 
-type SlotRow = { work_id: string; genre_id: string };
-// FIXED: Merged duplicate WorkRow definitions into one robust type
-type WorkRow = { id: string; title_ar?: string | null; author_ar?: string | null };
-type GenreRow = { id: string; name_ar: string; sort_order: number };
+type SlotRow = {
+  work_id: string;
+  genre_id: string;
+};
+
+type WorkRow = {
+  id: string;
+  title_ar: string;
+  author_ar?: string | null;
+};
+
+type GenreRow = {
+  id: string;
+  name_ar: string;
+  sort_order: number;
+};
+
+/* ---------- Component ---------- */
 
 export default function ArabicExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -21,12 +36,15 @@ export default function ArabicExplore() {
   const [works, setWorks] = useState<Record<string, WorkRow>>({});
   const [genres, setGenres] = useState<Record<string, GenreRow>>({});
 
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [msg, setMsg] = useState("");
+
+  /* ---------- Fingerprint (browser only) ---------- */
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const key = "enta_show_fp";
     let fp = localStorage.getItem(key);
     if (!fp) {
@@ -36,97 +54,108 @@ export default function ArabicExplore() {
     setFingerprint(fp);
   }, []);
 
+  /* ---------- Load data ---------- */
+
   useEffect(() => {
     if (!fingerprint) return;
-    void load();
-  }, [fingerprint, supabase]); // Added supabase to deps for best practice
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint]);
 
   async function load() {
-    if (!fingerprint) return;
     setMsg("");
 
-    const { data: activeRound, error: roundError } = await supabase
+    // 1) active round
+    const r = await supabase
       .from("rounds")
       .select("id")
-      .eq("active", true)
+      .eq("status", "active")
+      .eq("round_type", "category")
       .maybeSingle();
 
-    if (roundError || !activeRound?.id) {
-      setRoundId(null);
-      setSlots([]);
-      setMsg("لا توجد جولة نشطة حالياً.");
-      return;
-    }
+    if (!r.data?.id) return;
 
-    const activeRoundId = activeRound.id;
+    const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
-    const { data: slotRows } = await supabase
-      .from("round_slots")
+    // 2) slots
+    const sRes = await supabase
+      .from("category_slots")
       .select("work_id, genre_id")
       .eq("round_id", activeRoundId);
 
-    const s = slotRows ?? [];
-    setSlots(s);
+    const slotRows = (sRes.data as SlotRow[]) ?? [];
+    setSlots(slotRows);
 
-    const workIds = s.map((x) => x.work_id);
-    const genreIds = Array.from(new Set(s.map((x) => x.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
 
-    const { data: workRows } = workIds.length
-      ? await supabase.from("works").select("id, title_ar, author_ar").in("id", workIds)
-      : { data: [] as WorkRow[] };
+    // 3) works (titles always come from here)
+    const wRes = await supabase
+      .from("works")
+      .select("id, title_ar, author_ar")
+      .in("id", workIds);
 
-    const { data: genreRows } = genreIds.length
-      ? await supabase.from("genres").select("id, name_ar, sort_order").in("id", genreIds)
-      : { data: [] as GenreRow[] };
-
-    const workMap: Record<string, WorkRow> = {};
-    (workRows ?? []).forEach((w) => {
-      workMap[w.id] = w;
+    const wMap: Record<string, WorkRow> = {};
+    (wRes.data ?? []).forEach((w: any) => {
+      wMap[w.id] = w;
     });
-    setWorks(workMap);
+    setWorks(wMap);
 
-    const genreMap: Record<string, GenreRow> = {};
-    (genreRows ?? []).forEach((g) => {
-      genreMap[g.id] = g;
+    // 4) genres
+    const gRes = await supabase
+      .from("genres")
+      .select("id, name_ar, sort_order")
+      .in("id", genreIds);
+
+    const gMap: Record<string, GenreRow> = {};
+    (gRes.data ?? []).forEach((g: any) => {
+      gMap[g.id] = g;
     });
-    setGenres(genreMap);
+    setGenres(gMap);
 
+    // 5) vote counts
     const { data: allVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId);
 
-    const c: Record<string, number> = {};
-    (allVotes ?? []).forEach((v: { work_id: string }) => {
-      c[v.work_id] = (c[v.work_id] ?? 0) + 1;
+    const counts: Record<string, number> = {};
+    (allVotes ?? []).forEach((v: any) => {
+      counts[v.work_id] = (counts[v.work_id] ?? 0) + 1;
     });
-    setCounts(c);
+    setVoteCounts(counts);
 
+    // 6) my votes
     const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId)
       .eq("fingerprint", fingerprint);
 
-    setUserVotes(new Set((myVotes ?? []).map((v: { work_id: string }) => v.work_id)));
+    setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-  async function handleVoteToggle(workId: string) {
+  /* ---------- Vote / Undo ---------- */
+
+  async function toggleVote(workId: string) {
     if (!fingerprint || !roundId) return;
     setMsg("");
 
-    const hasVoted = userVotes.has(workId);
+    const hasVoted = myVotes.has(workId);
 
-    // FIXED: Unified API call to use the body for both POST and DELETE to match your previous route fix
-    const res = await fetch("/api/guest-vote", {
+    const url = hasVoted
+      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      : "/api/guest-vote";
+
+    const res = await fetch(url, {
       method: hasVoted ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roundId, workId, fingerprint }),
+      body: hasVoted ? null : JSON.stringify({ roundId, workId, fingerprint }),
     });
 
     if (!res.ok) {
-      setMsg(hasVoted ? "تعذّر التراجع. ربما تغيّر معرف الجهاز." : "تعذّر التصويت. حاول مرة أخرى.");
+      setMsg(hasVoted ? "تعذّر التراجع عن التصويت." : "تعذّر التصويت.");
       return;
     }
 
@@ -135,15 +164,19 @@ export default function ArabicExplore() {
 
   if (!fingerprint) {
     return (
-      <main dir="rtl" style={{ textAlign: "center", marginTop: 50, color: "#000" }}>
+      <main dir="rtl" style={{ textAlign: "center", marginTop: 40 }}>
         <p>جارٍ التحميل…</p>
       </main>
     );
   }
 
-  const sorted = [...slots].sort(
-    (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
+  const orderedSlots = [...slots].sort(
+    (a, b) =>
+      (genres[a.genre_id]?.sort_order ?? 999) -
+      (genres[b.genre_id]?.sort_order ?? 999)
   );
+
+  /* ---------- Render ---------- */
 
   return (
     <main
@@ -152,87 +185,67 @@ export default function ArabicExplore() {
         maxWidth: 900,
         margin: "40px auto",
         padding: 16,
-        backgroundColor: "#fff",
-        color: "#000",
         fontFamily: "system-ui, Arial",
+        background: "#fff",
+        color: "#000",
       }}
     >
-      <h1 style={{ color: "#000" }}>التصويت المفتوح</h1>
+      <h1>التصويت</h1>
 
-      <p style={{ color: "#333", marginBottom: 8 }}>يمكنك التصويت مرة واحدة لكل عمل.</p>
-
-      <p style={{ color: "#666", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
-        ملاحظة: التراجع متاح طالما لم يتغيّر معرف الجهاز (إذا تم مسح بيانات المتصفح قد لا يعمل التراجع).
+      <p style={{ color: "#555", fontSize: 14 }}>
+        يمكنك التصويت مرة واحدة لكل عمل. التراجع ممكن طالما لم يتغيّر معرف الجهاز.
       </p>
 
-      {msg ? (
-        <div style={{ marginBottom: 16, color: "#a12b2b", fontWeight: 600 }}>{msg}</div>
-      ) : null}
-
-      {sorted.map((s) => {
+      {orderedSlots.map((s) => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
 
+        const title = w?.title_ar ?? "عنوان غير متاح";
         const genreName = g?.name_ar ?? "";
-        const title = w?.title_ar?.trim() ? w.title_ar : "عنوان غير متاح";
-        const count = counts[s.work_id] ?? 0;
-        const hasVoted = userVotes.has(s.work_id);
+        const count = voteCounts[s.work_id] ?? 0;
+        const voted = myVotes.has(s.work_id);
 
         return (
           <div
             key={s.work_id}
             style={{
               border: "1px solid #ddd",
-              padding: 20,
-              marginBottom: 15,
               borderRadius: 12,
+              padding: 16,
+              marginBottom: 14,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              backgroundColor: "#fdfdfd",
-              gap: 12,
             }}
           >
             <div>
-              <div style={{ color: "#555", fontSize: 13 }}>{genreName}</div>
-              <strong style={{ fontSize: 20, color: "#000" }}>{title}</strong>
-              {w?.author_ar ? (
-                <div style={{ color: "#666", marginTop: 6, fontSize: 13 }}>{w.author_ar}</div>
-              ) : null}
+              <div style={{ fontSize: 13, color: "#666" }}>{genreName}</div>
+              <strong style={{ fontSize: 20 }}>{title}</strong>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ color: "#333", fontSize: 14 }}>الأصوات: {count}</span>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>{count}</div>
               <button
-                type="button"
-                onClick={() => handleVoteToggle(s.work_id)}
+                onClick={() => toggleVote(s.work_id)}
                 style={{
-                  background: hasVoted ? "#f2f2f2" : "#111",
-                  color: hasVoted ? "#111" : "#fff",
-                  border: "1px solid #111",
-                  padding: "8px 14px",
-                  borderRadius: 999,
+                  marginTop: 6,
+                  padding: "6px 14px",
+                  borderRadius: 8,
+                  border: "none",
                   cursor: "pointer",
+                  background: voted ? "#ef4444" : "#2563eb",
+                  color: "#fff",
                   fontWeight: 700,
                 }}
               >
-                {hasVoted ? "تراجع" : "صوّت"}
+                {voted ? "تراجع" : "صوّت"}
               </button>
             </div>
           </div>
         );
       })}
 
-      {!sorted.length ? (
-        <p style={{ color: "#666" }}>لا توجد أعمال متاحة حالياً.</p>
-      ) : null}
+      {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
     </main>
   );
 }

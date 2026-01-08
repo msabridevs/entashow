@@ -1,27 +1,50 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-// ✅ Types moved outside the component
-type SlotRow = { work_id: string; genre_id: string };
-type WorkRow = { id: string; title_ar?: string | null; author_ar?: string | null };
-type GenreRow = { id: string; name_ar: string; sort_order: number };
+/* ---------- Types ---------- */
 
-export default function EnglishExploreClient() {
+type SlotRow = {
+  work_id: string;
+  genre_id: string;
+};
+
+type WorkRow = {
+  id: string;
+  title_ar: string;
+  author_ar?: string | null;
+};
+
+type GenreRow = {
+  id: string;
+  name_en: string;
+  sort_order: number;
+};
+
+/* ---------- Component ---------- */
+
+export default function EnglishExplore() {
   const supabase = useMemo(() => createClient(), []);
 
   const [fingerprint, setFingerprint] = useState<string | null>(null);
   const [roundId, setRoundId] = useState<string | null>(null);
+
   const [slots, setSlots] = useState<SlotRow[]>([]);
   const [works, setWorks] = useState<Record<string, WorkRow>>({});
   const [genres, setGenres] = useState<Record<string, GenreRow>>({});
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
+
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [msg, setMsg] = useState("");
+
+  /* ---------- Fingerprint ---------- */
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const key = "enta_show_fp";
     let fp = localStorage.getItem(key);
     if (!fp) {
@@ -34,60 +57,67 @@ export default function EnglishExploreClient() {
   useEffect(() => {
     if (!fingerprint) return;
     load();
-  }, [fingerprint, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint]);
 
   async function load() {
-    if (!fingerprint) return;
     setMsg("");
 
-    const { data: activeRound } = await supabase
+    const r = await supabase
       .from("rounds")
       .select("id")
-      .eq("active", true)
+      .eq("status", "active")
+      .eq("round_type", "category")
       .maybeSingle();
 
-    if (!activeRound?.id) {
-      setMsg("No active round is available right now.");
-      return;
-    }
+    if (!r.data?.id) return;
 
-    const activeRoundId = activeRound.id;
+    const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
-    const { data: slotRows } = await supabase
-      .from("round_slots")
+    const sRes = await supabase
+      .from("category_slots")
       .select("work_id, genre_id")
       .eq("round_id", activeRoundId);
 
-    const s = slotRows ?? [];
-    setSlots(s);
+    const slotRows = (sRes.data as SlotRow[]) ?? [];
+    setSlots(slotRows);
 
-    const workIds = s.map((x) => x.work_id);
-    const genreIds = Array.from(new Set(s.map((x) => x.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
 
-    const [{ data: workRows }, { data: genreRows }] = await Promise.all([
-      supabase.from("works").select("id, title_ar, author_ar").in("id", workIds),
-      supabase.from("genres").select("id, name_ar, sort_order").in("id", genreIds)
-    ]);
+    const wRes = await supabase
+      .from("works")
+      .select("id, title_ar, author_ar")
+      .in("id", workIds);
 
-    const workMap: Record<string, WorkRow> = {};
-    (workRows ?? []).forEach((w) => { workMap[w.id] = w; });
-    setWorks(workMap);
+    const wMap: Record<string, WorkRow> = {};
+    (wRes.data ?? []).forEach((w: any) => {
+      wMap[w.id] = w;
+    });
+    setWorks(wMap);
 
-    const genreMap: Record<string, GenreRow> = {};
-    (genreRows ?? []).forEach((g) => { genreMap[g.id] = g; });
-    setGenres(genreMap);
+    const gRes = await supabase
+      .from("genres")
+      .select("id, name_en, sort_order")
+      .in("id", genreIds);
+
+    const gMap: Record<string, GenreRow> = {};
+    (gRes.data ?? []).forEach((g: any) => {
+      gMap[g.id] = g;
+    });
+    setGenres(gMap);
 
     const { data: allVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId);
 
-    const c: Record<string, number> = {};
-    (allVotes ?? []).forEach((v) => {
-      c[v.work_id] = (c[v.work_id] ?? 0) + 1;
+    const counts: Record<string, number> = {};
+    (allVotes ?? []).forEach((v: any) => {
+      counts[v.work_id] = (counts[v.work_id] ?? 0) + 1;
     });
-    setCounts(c);
+    setVoteCounts(counts);
 
     const { data: myVotes } = await supabase
       .from("guest_votes")
@@ -95,78 +125,114 @@ export default function EnglishExploreClient() {
       .eq("round_id", activeRoundId)
       .eq("fingerprint", fingerprint);
 
-    setUserVotes(new Set((myVotes ?? []).map((v) => v.work_id)));
+    setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-  async function handleVoteToggle(workId: string) {
+  async function toggleVote(workId: string) {
     if (!fingerprint || !roundId) return;
-    const hasVoted = userVotes.has(workId);
+    setMsg("");
 
-    const res = await fetch("/api/guest-vote", {
+    const hasVoted = myVotes.has(workId);
+
+    const url = hasVoted
+      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      : "/api/guest-vote";
+
+    const res = await fetch(url, {
       method: hasVoted ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roundId, workId, fingerprint }),
+      body: hasVoted ? null : JSON.stringify({ roundId, workId, fingerprint }),
     });
 
     if (!res.ok) {
-      setMsg("Update failed. Please try again.");
+      setMsg(hasVoted ? "Undo failed." : "Vote failed.");
       return;
     }
+
     await load();
   }
 
-  if (!fingerprint) return <div style={{ color: "#fff", padding: 50 }}>Loading...</div>;
+  if (!fingerprint) {
+    return (
+      <main style={{ textAlign: "center", marginTop: 40 }}>
+        <p>Loading…</p>
+      </main>
+    );
+  }
 
-  const sorted = [...slots].sort(
-    (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
+  const orderedSlots = [...slots].sort(
+    (a, b) =>
+      (genres[a.genre_id]?.sort_order ?? 999) -
+      (genres[b.genre_id]?.sort_order ?? 999)
   );
 
   return (
-    <main style={{ minHeight: "100vh", background: "#0b0b0f", color: "#fff", padding: "48px 20px" }}>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 42, marginBottom: 12 }}>EntaShow Guest Voting</h1>
-        <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: 20 }}>Vote once per work.</p>
-        
-        {msg && <div style={{ color: "#ff4d4d", marginBottom: 20 }}>{msg}</div>}
+    <main
+      style={{
+        maxWidth: 900,
+        margin: "40px auto",
+        padding: 16,
+        fontFamily: "system-ui, Arial",
+        background: "#fff",
+        color: "#000",
+      }}
+    >
+      <h1>Voting</h1>
 
-        {sorted.map((s) => {
-          const g = genres[s.genre_id];
-          const w = works[s.work_id];
-          const hasVoted = userVotes.has(s.work_id);
+      <p style={{ color: "#555", fontSize: 14 }}>
+        One vote per title. Undo works while device identifier stays the same.
+      </p>
 
-          return (
-            <div key={s.work_id} style={{ 
-              background: "rgba(255,255,255,0.05)", 
-              padding: 20, 
-              borderRadius: 12, 
-              display: "flex", 
-              justifyContent: "space-between", 
-              marginBottom: 15,
-              border: "1px solid rgba(255,255,255,0.1)"
-            }}>
-              <div>
-                <small style={{ color: "#aaa" }}>{g?.name_ar}</small>
-                <h3 style={{ margin: "5px 0" }}>{w?.title_ar || "Untitled"}</h3>
-                <span style={{ fontSize: 12, color: "#888" }}>Votes: {counts[s.work_id] ?? 0}</span>
-              </div>
-              <button 
-                onClick={() => handleVoteToggle(s.work_id)}
+      {orderedSlots.map((s) => {
+        const g = genres[s.genre_id];
+        const w = works[s.work_id];
+
+        const title = w?.title_ar ?? "Title unavailable";
+        const genreName = g?.name_en ?? "";
+        const count = voteCounts[s.work_id] ?? 0;
+        const voted = myVotes.has(s.work_id);
+
+        return (
+          <div
+            key={s.work_id}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 14,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 13, color: "#666" }}>{genreName}</div>
+              <strong style={{ fontSize: 20 }}>{title}</strong>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>{count}</div>
+              <button
+                onClick={() => toggleVote(s.work_id)}
                 style={{
-                  padding: "10px 20px",
+                  marginTop: 6,
+                  padding: "6px 14px",
                   borderRadius: 8,
-                  cursor: "pointer",
-                  background: hasVoted ? "#ff4d4d" : "#fff",
-                  color: hasVoted ? "#fff" : "#000",
                   border: "none",
-                  fontWeight: "bold"
+                  cursor: "pointer",
+                  background: voted ? "#ef4444" : "#2563eb",
+                  color: "#fff",
+                  fontWeight: 700,
                 }}
               >
-                {hasVoted ? "Remove Vote" : "Vote"}
+                {voted ? "Undo" : "Vote"}
               </button>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
+
+      {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
     </main>
   );
 }
