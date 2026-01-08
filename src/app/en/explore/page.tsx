@@ -14,8 +14,9 @@ type SlotRow = {
 
 type WorkRow = {
   id: string;
+  title_en: string | null;
   title_ar: string;
-  author_ar?: string | null;
+  author_en?: string | null;
 };
 
 type GenreRow = {
@@ -63,6 +64,7 @@ export default function EnglishExplore() {
   async function load() {
     setMsg("");
 
+    // 1) active round
     const r = await supabase
       .from("rounds")
       .select("id")
@@ -75,6 +77,7 @@ export default function EnglishExplore() {
     const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
+    // 2) slots
     const sRes = await supabase
       .from("category_slots")
       .select("work_id, genre_id")
@@ -83,12 +86,13 @@ export default function EnglishExplore() {
     const slotRows = (sRes.data as SlotRow[]) ?? [];
     setSlots(slotRows);
 
-    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
-    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map(s => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map(s => s.genre_id)));
 
+    // 3) works (EN first, AR fallback)
     const wRes = await supabase
       .from("works")
-      .select("id, title_ar, author_ar")
+      .select("id, title_en, title_ar, author_en")
       .in("id", workIds);
 
     const wMap: Record<string, WorkRow> = {};
@@ -97,6 +101,7 @@ export default function EnglishExplore() {
     });
     setWorks(wMap);
 
+    // 4) genres
     const gRes = await supabase
       .from("genres")
       .select("id, name_en, sort_order")
@@ -108,6 +113,7 @@ export default function EnglishExplore() {
     });
     setGenres(gMap);
 
+    // 5) vote counts
     const { data: allVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -119,6 +125,7 @@ export default function EnglishExplore() {
     });
     setVoteCounts(counts);
 
+    // 6) my votes
     const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -180,14 +187,18 @@ export default function EnglishExplore() {
       <h1>Voting</h1>
 
       <p style={{ color: "#555", fontSize: 14 }}>
-        One vote per title. Undo works while device identifier stays the same.
+        One vote per work. Undo is available while your device identifier stays the same.
       </p>
 
-      {orderedSlots.map((s) => {
+      {orderedSlots.map(s => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
 
-        const title = w?.title_ar ?? "Title unavailable";
+        const title =
+          w?.title_en?.trim() ||
+          w?.title_ar ||
+          "Title unavailable";
+
         const genreName = g?.name_en ?? "";
         const count = voteCounts[s.work_id] ?? 0;
         const voted = myVotes.has(s.work_id);
