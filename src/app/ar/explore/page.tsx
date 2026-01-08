@@ -61,21 +61,7 @@ export default function ArabicExplore() {
       return;
     }
 
-    const activeRoundId = activeRound.id;
-    setRoundId(activeRoundId);
-
-    const { data: slotRows } = await supabase
-      .from("round_slots")
-      .select("work_id, genre_id")
-      .eq("round_id", activeRoundId);
-
-    const normalizedSlots = slotRows ?? [];
-    setSlots(normalizedSlots);
-
-    const workIds = Array.from(new Set(normalizedSlots.map((s) => s.work_id)));
-    const genreIds = Array.from(new Set(normalizedSlots.map((s) => s.genre_id)));
-
-    const { data: workRows } = workIds.length
+@@ -79,85 +75,81 @@ export default function ArabicExplore() {
       ? await supabase.from("works").select("id, title_ar, author_ar").in("id", workIds)
       : { data: [] as WorkRow[] };
 
@@ -161,8 +147,7 @@ export default function ArabicExplore() {
 
   return (
     <main
-      dir="rtl"
-      style={{
+@@ -166,90 +158,88 @@ export default function ArabicExplore() {
         maxWidth: 900,
         margin: "40px auto",
         padding: 16,
@@ -252,4 +237,5 @@ export default function ArabicExplore() {
       ) : null}
     </main>
   );
+}
 }

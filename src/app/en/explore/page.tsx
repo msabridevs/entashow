@@ -24,6 +24,32 @@ export default function EnglishHome() {
             background: "rgba(255,255,255,0.06)",
             backdropFilter: "blur(8px)",
 @@ -92,26 +91,25 @@ export default function EnglishHome() {
+            marginBottom: 18,
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: 0.2,
+          }}
+        >
+          Open voting
+        </div>
+
+        <h1 style={{ fontSize: 42, margin: "0 0 12px" }}>EntaShow Guest Voting</h1>
+        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 18, marginBottom: 28 }}>
+          Vote once for each work and see the live totals update instantly.
+        </p>
+
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <a
+            href="/ar/explore"
+            style={{
+              padding: "12px 16px",
+              borderRadius: 14,
+              textDecoration: "none",
+              color: "#0b0b0f",
+              background: "#fff",
+              fontWeight: 700,
+            }}
+          >
             Go to voting
           </a>
 
@@ -48,4 +74,5 @@ export default function EnglishHome() {
 }
 
 // Extra safety: guarantees TypeScript treats this file as a module
+export {};
 export {};
