@@ -1,16 +1,18 @@
 "use client";
 
-export const dynamic = "force-dynamic";
+import React from "react";
 
-export default function EnglishHome() {
+export default function EnglishHomeClient() {
   return (
     <main
       style={{
         minHeight: "100vh",
         padding: "48px 20px",
-        fontFamily: "system-ui, Arial",
+        fontFamily: "system-ui, -apple-system, Arial, sans-serif",
         background:
-          "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
+          "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), " +
+          "radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), " +
+          "#0b0b0f",
         color: "#fff",
       }}
     >
@@ -23,17 +25,20 @@ export default function EnglishHome() {
             border: "1px solid rgba(255,255,255,0.18)",
             background: "rgba(255,255,255,0.06)",
             backdropFilter: "blur(8px)",
-@@ -92,26 +91,25 @@ export default function EnglishHome() {
+            WebkitBackdropFilter: "blur(8px)", // Added for Safari compatibility
             marginBottom: 18,
             fontSize: 13,
             fontWeight: 600,
-            letterSpacing: 0.2,
+            letterSpacing: "0.2px",
           }}
         >
           Open voting
         </div>
 
-        <h1 style={{ fontSize: 42, margin: "0 0 12px" }}>EntaShow Guest Voting</h1>
+        <h1 style={{ fontSize: 42, margin: "0 0 12px", lineHeight: 1.2 }}>
+          EntaShow Guest Voting
+        </h1>
+        
         <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 18, marginBottom: 28 }}>
           Vote once for each work and see the live totals update instantly.
         </p>
@@ -42,12 +47,13 @@ export default function EnglishHome() {
           <a
             href="/ar/explore"
             style={{
-              padding: "12px 16px",
+              padding: "12px 20px",
               borderRadius: 14,
               textDecoration: "none",
               color: "#0b0b0f",
               background: "#fff",
               fontWeight: 700,
+              transition: "opacity 0.2s",
             }}
           >
             Go to voting
@@ -56,13 +62,14 @@ export default function EnglishHome() {
           <a
             href="/ar"
             style={{
-              padding: "12px 16px",
+              padding: "12px 20px",
               borderRadius: 14,
               textDecoration: "none",
               color: "#fff",
               border: "1px solid rgba(255,255,255,0.22)",
               background: "rgba(255,255,255,0.06)",
               fontWeight: 650,
+              transition: "background 0.2s",
             }}
           >
             العربية
@@ -72,6 +79,3 @@ export default function EnglishHome() {
     </main>
   );
 }
-
-// Extra safety: guarantees TypeScript treats this file as a module
-export {};

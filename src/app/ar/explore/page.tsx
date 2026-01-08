@@ -1,14 +1,13 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+// FIXED: Removed duplicate export and duplicate dynamic config
 export const dynamic = "force-dynamic";
 
 type SlotRow = { work_id: string; genre_id: string };
-type WorkRow = { id: string; title_ar: string; author_ar?: string | null };
+// FIXED: Merged duplicate WorkRow definitions into one robust type
 type WorkRow = { id: string; title_ar?: string | null; author_ar?: string | null };
 type GenreRow = { id: string; name_ar: string; sort_order: number };
 
@@ -35,14 +34,12 @@ export default function ArabicExplore() {
       localStorage.setItem(key, fp);
     }
     setFingerprint(fp);
-@@ -93,109 +93,103 @@ export default function ArabicExplore() {
   }, []);
 
   useEffect(() => {
     if (!fingerprint) return;
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fingerprint]);
+  }, [fingerprint, supabase]); // Added supabase to deps for best practice
 
   async function load() {
     if (!fingerprint) return;
@@ -61,7 +58,21 @@ export default function ArabicExplore() {
       return;
     }
 
-@@ -79,85 +75,81 @@ export default function ArabicExplore() {
+    const activeRoundId = activeRound.id;
+    setRoundId(activeRoundId);
+
+    const { data: slotRows } = await supabase
+      .from("round_slots")
+      .select("work_id, genre_id")
+      .eq("round_id", activeRoundId);
+
+    const s = slotRows ?? [];
+    setSlots(s);
+
+    const workIds = s.map((x) => x.work_id);
+    const genreIds = Array.from(new Set(s.map((x) => x.genre_id)));
+
+    const { data: workRows } = workIds.length
       ? await supabase.from("works").select("id, title_ar, author_ar").in("id", workIds)
       : { data: [] as WorkRow[] };
 
@@ -87,20 +98,17 @@ export default function ArabicExplore() {
       .eq("round_id", activeRoundId);
 
     const c: Record<string, number> = {};
-    (allVotes ?? []).forEach((v: any) => {
     (allVotes ?? []).forEach((v: { work_id: string }) => {
       c[v.work_id] = (c[v.work_id] ?? 0) + 1;
     });
     setCounts(c);
 
-    // 5) my votes
     const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId)
       .eq("fingerprint", fingerprint);
 
-    setUserVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
     setUserVotes(new Set((myVotes ?? []).map((v: { work_id: string }) => v.work_id)));
   }
 
@@ -110,17 +118,10 @@ export default function ArabicExplore() {
 
     const hasVoted = userVotes.has(workId);
 
-    const url = hasVoted
-      ? `/api/guest-vote?roundId=${encodeURIComponent(roundId)}&workId=${encodeURIComponent(
-          workId
-        )}&fingerprint=${encodeURIComponent(fingerprint)}`
-      : "/api/guest-vote";
-
-    const res = await fetch(url, {
+    // FIXED: Unified API call to use the body for both POST and DELETE to match your previous route fix
     const res = await fetch("/api/guest-vote", {
       method: hasVoted ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: hasVoted ? null : JSON.stringify({ roundId, workId, fingerprint }),
       body: JSON.stringify({ roundId, workId, fingerprint }),
     });
 
@@ -140,14 +141,14 @@ export default function ArabicExplore() {
     );
   }
 
-  // keep your decorations; just ensure visibility
   const sorted = [...slots].sort(
     (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
   );
 
   return (
     <main
-@@ -166,90 +158,88 @@ export default function ArabicExplore() {
+      dir="rtl"
+      style={{
         maxWidth: 900,
         margin: "40px auto",
         padding: 16,
@@ -173,10 +174,8 @@ export default function ArabicExplore() {
         const w = works[s.work_id];
 
         const genreName = g?.name_ar ?? "";
-        const title = w?.title_ar ?? "عنوان غير متاح";
         const title = w?.title_ar?.trim() ? w.title_ar : "عنوان غير متاح";
         const count = counts[s.work_id] ?? 0;
-
         const hasVoted = userVotes.has(s.work_id);
 
         return (
@@ -203,7 +202,6 @@ export default function ArabicExplore() {
             </div>
 
             <div
-              style={{
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -237,5 +235,4 @@ export default function ArabicExplore() {
       ) : null}
     </main>
   );
-}
 }

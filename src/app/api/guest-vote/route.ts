@@ -20,9 +20,9 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   const url = new URL(req.url);
-  const roundId = url.searchParams.get("roundId");
-  const workId = url.searchParams.get("workId");
-  const fingerprint = url.searchParams.get("fingerprint");
+  
+  // FIXED: Removed the duplicate 'const' declarations. 
+  // Using 'let' allows the fallback reassignment in the if-block below.
   let roundId = url.searchParams.get("roundId");
   let workId = url.searchParams.get("workId");
   let fingerprint = url.searchParams.get("fingerprint");
@@ -49,4 +49,4 @@ export async function DELETE(req: Request) {
   if (error) return new NextResponse("failed", { status: 400 });
   return NextResponse.json({ ok: true });
 }
-}
+// FIXED: Removed the extra closing brace '}' that was causing a syntax error.
