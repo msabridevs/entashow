@@ -75,4 +75,3 @@ export default function EnglishHome() {
 
 // Extra safety: guarantees TypeScript treats this file as a module
 export {};
-export {};
