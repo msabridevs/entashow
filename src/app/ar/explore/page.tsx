@@ -5,23 +5,20 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type SlotRow = {
-  work_id: string;
-  genre_id: string;
-};
+type SlotRow = { work_id: string; genre_id: string };
 
 type WorkRow = {
   id: string;
   title_ar: string;
   author_ar?: string | null;
+  author_url?: string | null;
+  publication_year?: number | null;
+  publisher?: string | null;
+  notable_awards?: string | null;
   synopsis_ar?: string | null;
 };
 
-type GenreRow = {
-  id: string;
-  name_ar: string;
-  sort_order: number;
-};
+type GenreRow = { id: string; name_ar: string; sort_order: number };
 
 export default function ArabicExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -39,7 +36,6 @@ export default function ArabicExplore() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const key = "enta_show_fp";
     let fp = localStorage.getItem(key);
     if (!fp) {
@@ -58,7 +54,6 @@ export default function ArabicExplore() {
   async function load() {
     setMsg("");
 
-    // Active category round
     const r = await supabase
       .from("rounds")
       .select("id")
@@ -67,11 +62,9 @@ export default function ArabicExplore() {
       .maybeSingle();
 
     if (!r.data?.id) return;
-
     const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
-    // Slots
     const sRes = await supabase
       .from("category_slots")
       .select("work_id, genre_id")
@@ -83,17 +76,17 @@ export default function ArabicExplore() {
     const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
     const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
 
-    // Works (titles + synopsis)
     const wRes = await supabase
       .from("works")
-      .select("id, title_ar, author_ar, synopsis_ar")
+      .select(
+        "id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar"
+      )
       .in("id", workIds);
 
     const wMap: Record<string, WorkRow> = {};
     (wRes.data ?? []).forEach((w: any) => (wMap[w.id] = w));
     setWorks(wMap);
 
-    // Genres
     const gRes = await supabase
       .from("genres")
       .select("id, name_ar, sort_order")
@@ -103,7 +96,6 @@ export default function ArabicExplore() {
     (gRes.data ?? []).forEach((g: any) => (gMap[g.id] = g));
     setGenres(gMap);
 
-    // Vote counts (server truth)
     const { data: allVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -115,7 +107,6 @@ export default function ArabicExplore() {
     });
     setVoteCounts(counts);
 
-    // My votes (by fingerprint)
     const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -160,9 +151,7 @@ export default function ArabicExplore() {
   }
 
   const orderedSlots = [...slots].sort(
-    (a, b) =>
-      (genres[a.genre_id]?.sort_order ?? 999) -
-      (genres[b.genre_id]?.sort_order ?? 999)
+    (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
   );
 
   return (
@@ -179,19 +168,21 @@ export default function ArabicExplore() {
     >
       <h1 style={{ marginTop: 0 }}>التصويت</h1>
 
-      <p style={{ color: "#555", fontSize: 14, marginBottom: 18 }}>
-        صوّت كضيف — بدون تسجيل. يمكنك التراجع طالما لم يتغيّر معرف الجهاز.
-      </p>
-
       {orderedSlots.map((s) => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
 
         const genreName = g?.name_ar ?? "";
         const title = w?.title_ar ?? "عنوان غير متاح";
-        const synopsis = w?.synopsis_ar ?? "";
+        const synopsis = (w?.synopsis_ar || "").trim();
         const count = voteCounts[s.work_id] ?? 0;
         const voted = myVotes.has(s.work_id);
+
+        const authorName = w?.author_ar || "";
+        const authorUrl = (w?.author_url || "").trim();
+        const year = w?.publication_year ?? null;
+        const publisher = (w?.publisher || "").trim();
+        const awards = (w?.notable_awards || "").trim();
 
         return (
           <div
@@ -211,7 +202,60 @@ export default function ArabicExplore() {
               <div style={{ fontSize: 13, color: "#666" }}>{genreName}</div>
               <strong style={{ fontSize: 20, display: "block" }}>{title}</strong>
 
+              {/* Meta row */}
+              <div
+                style={{
+                  marginTop: 6,
+                  color: "#333",
+                  opacity: 0.9,
+                  fontSize: 13,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                {authorName && (
+                  <span>
+                    المؤلف:{" "}
+                    {authorUrl ? (
+                      <a
+                        href={authorUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color: "#2563eb",
+                          textDecoration: "none",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {authorName}
+                      </a>
+                    ) : (
+                      <span style={{ fontWeight: 700 }}>{authorName}</span>
+                    )}
+                  </span>
+                )}
+                {year && (
+                  <span>
+                    سنة النشر: <b>{year}</b>
+                  </span>
+                )}
+                {publisher && (
+                  <span>
+                    الناشر: <b>{publisher}</b>
+                  </span>
+                )}
+              </div>
+
+              {/* 3-line synopsis */}
               {synopsis && <div style={clamp3}>{synopsis}</div>}
+
+              {/* Awards (3-line too) */}
+              {awards && (
+                <div style={{ ...clamp3, marginTop: 6 }}>
+                  <b>جوائز/ترشيحات:</b> {awards}
+                </div>
+              )}
             </div>
 
             <div style={{ textAlign: "center", minWidth: 110 }}>
@@ -252,3 +296,4 @@ const clamp3: React.CSSProperties = {
   WebkitBoxOrient: "vertical" as any,
   overflow: "hidden",
 };
+

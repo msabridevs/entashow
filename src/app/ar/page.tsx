@@ -1,3 +1,6 @@
+// 1) Fix readability (Arabic home page) — increase contrast
+// Replace your src/app/ar/page.tsx with this (same layout, only stronger contrast + subtle shadow/backdrop):
+
 "use client";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +23,7 @@ export default function ArabicHome() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
 
-  useEffect(() => {
-    setFp(getFP());
-  }, []);
+  useEffect(() => setFp(getFP()), []);
 
   async function saveEmail() {
     setMsg("");
@@ -49,14 +50,37 @@ export default function ArabicHome() {
           "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
         color: "#fff",
         fontFamily: "system-ui, Arial",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+      {/* Contrast overlay */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(900px 420px at 50% 20%, rgba(0,0,0,0.30), transparent 60%), linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.55))",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
         <div style={{ marginBottom: 14 }}>
           <EntaShowLogo variant="ar" />
         </div>
 
-        <p style={{ fontSize: 18, opacity: 0.9, lineHeight: 1.9, marginTop: 10 }}>
+        <p
+          style={{
+            fontSize: 20,
+            opacity: 1,
+            lineHeight: 1.9,
+            marginTop: 10,
+            color: "rgba(255,255,255,0.94)",
+            textShadow: "0 2px 12px rgba(0,0,0,0.55)",
+          }}
+        >
           صوّت كضيف — بدون تسجيل.
           <br />
           واجمع فرصًا لحضور التصوير وجوائز أخرى عبر السحب العشوائي.
@@ -72,6 +96,7 @@ export default function ArabicHome() {
               color: "#0b0b0f",
               background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
               fontWeight: 800,
+              boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
             }}
           >
             ابدأ التصويت
@@ -83,10 +108,11 @@ export default function ArabicHome() {
               padding: "12px 16px",
               borderRadius: 14,
               textDecoration: "none",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(255,255,255,0.06)",
-              fontWeight: 650,
+              color: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(0,0,0,0.25)",
+              fontWeight: 700,
+              backdropFilter: "blur(10px)",
             }}
           >
             قدّم نصك (مستقل)
@@ -98,29 +124,46 @@ export default function ArabicHome() {
               padding: "12px 16px",
               borderRadius: 14,
               textDecoration: "none",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(255,255,255,0.06)",
-              fontWeight: 650,
+              color: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(0,0,0,0.25)",
+              fontWeight: 700,
+              backdropFilter: "blur(10px)",
             }}
           >
             English
           </a>
         </div>
 
-        {/* Rewards email */}
         <section
           style={{
             marginTop: 34,
             padding: 18,
             borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.18)",
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.22)",
+            background: "rgba(0,0,0,0.35)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>سحب الجوائز 🎁</h3>
-          <p style={{ opacity: 0.9, lineHeight: 1.7 }}>
+          <h3
+            style={{
+              marginTop: 0,
+              color: "rgba(255,255,255,0.95)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
+            }}
+          >
+            سحب الجوائز 🎁
+          </h3>
+
+          <p
+            style={{
+              opacity: 1,
+              lineHeight: 1.7,
+              color: "rgba(255,255,255,0.90)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
+            }}
+          >
             أدخل بريدك الإلكتروني للمشاركة في السحب العشوائي.
             سيتم حفظ بريدك لهذا الغرض فقط، وقد نتواصل مع الفائزين.
           </p>
@@ -134,9 +177,10 @@ export default function ArabicHome() {
                 minWidth: 260,
                 padding: 10,
                 borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.18)",
-                background: "rgba(0,0,0,0.35)",
+                border: "1px solid rgba(255,255,255,0.22)",
+                background: "rgba(255,255,255,0.10)",
                 color: "#fff",
+                outline: "none",
               }}
             />
             <button
@@ -146,18 +190,20 @@ export default function ArabicHome() {
                 borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
-                fontWeight: 800,
+                fontWeight: 900,
                 background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
                 color: "#0b0b0f",
+                boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
               }}
             >
               حفظ البريد
             </button>
           </div>
 
-          {msg && <p style={{ marginTop: 10 }}>{msg}</p>}
+          {msg && <p style={{ marginTop: 10, color: "rgba(255,255,255,0.92)" }}>{msg}</p>}
         </section>
       </div>
     </main>
   );
 }
+
