@@ -5,8 +5,6 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-/* ---------- Types ---------- */
-
 type SlotRow = {
   work_id: string;
   genre_id: string;
@@ -16,6 +14,7 @@ type WorkRow = {
   id: string;
   title_ar: string;
   author_ar?: string | null;
+  synopsis_ar?: string | null;
 };
 
 type GenreRow = {
@@ -23,8 +22,6 @@ type GenreRow = {
   name_ar: string;
   sort_order: number;
 };
-
-/* ---------- Component ---------- */
 
 export default function ArabicExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -40,8 +37,6 @@ export default function ArabicExplore() {
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [msg, setMsg] = useState("");
 
-  /* ---------- Fingerprint (browser only) ---------- */
-
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -54,8 +49,6 @@ export default function ArabicExplore() {
     setFingerprint(fp);
   }, []);
 
-  /* ---------- Load data ---------- */
-
   useEffect(() => {
     if (!fingerprint) return;
     load();
@@ -65,7 +58,7 @@ export default function ArabicExplore() {
   async function load() {
     setMsg("");
 
-    // 1) active round
+    // Active category round
     const r = await supabase
       .from("rounds")
       .select("id")
@@ -78,7 +71,7 @@ export default function ArabicExplore() {
     const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
-    // 2) slots
+    // Slots
     const sRes = await supabase
       .from("category_slots")
       .select("work_id, genre_id")
@@ -90,31 +83,27 @@ export default function ArabicExplore() {
     const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
     const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
 
-    // 3) works (titles always come from here)
+    // Works (titles + synopsis)
     const wRes = await supabase
       .from("works")
-      .select("id, title_ar, author_ar")
+      .select("id, title_ar, author_ar, synopsis_ar")
       .in("id", workIds);
 
     const wMap: Record<string, WorkRow> = {};
-    (wRes.data ?? []).forEach((w: any) => {
-      wMap[w.id] = w;
-    });
+    (wRes.data ?? []).forEach((w: any) => (wMap[w.id] = w));
     setWorks(wMap);
 
-    // 4) genres
+    // Genres
     const gRes = await supabase
       .from("genres")
       .select("id, name_ar, sort_order")
       .in("id", genreIds);
 
     const gMap: Record<string, GenreRow> = {};
-    (gRes.data ?? []).forEach((g: any) => {
-      gMap[g.id] = g;
-    });
+    (gRes.data ?? []).forEach((g: any) => (gMap[g.id] = g));
     setGenres(gMap);
 
-    // 5) vote counts
+    // Vote counts (server truth)
     const { data: allVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -126,7 +115,7 @@ export default function ArabicExplore() {
     });
     setVoteCounts(counts);
 
-    // 6) my votes
+    // My votes (by fingerprint)
     const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
@@ -136,8 +125,6 @@ export default function ArabicExplore() {
     setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-  /* ---------- Vote / Undo ---------- */
-
   async function toggleVote(workId: string) {
     if (!fingerprint || !roundId) return;
     setMsg("");
@@ -145,7 +132,9 @@ export default function ArabicExplore() {
     const hasVoted = myVotes.has(workId);
 
     const url = hasVoted
-      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      ? `/api/guest-vote?roundId=${encodeURIComponent(roundId)}&workId=${encodeURIComponent(
+          workId
+        )}&fingerprint=${encodeURIComponent(fingerprint)}`
       : "/api/guest-vote";
 
     const res = await fetch(url, {
@@ -155,7 +144,7 @@ export default function ArabicExplore() {
     });
 
     if (!res.ok) {
-      setMsg(hasVoted ? "تعذّر التراجع عن التصويت." : "تعذّر التصويت.");
+      setMsg(hasVoted ? "تعذّر التراجع." : "تعذّر التصويت.");
       return;
     }
 
@@ -176,8 +165,6 @@ export default function ArabicExplore() {
       (genres[b.genre_id]?.sort_order ?? 999)
   );
 
-  /* ---------- Render ---------- */
-
   return (
     <main
       dir="rtl"
@@ -190,18 +177,19 @@ export default function ArabicExplore() {
         color: "#000",
       }}
     >
-      <h1>التصويت</h1>
+      <h1 style={{ marginTop: 0 }}>التصويت</h1>
 
-      <p style={{ color: "#555", fontSize: 14 }}>
-        يمكنك التصويت مرة واحدة لكل عمل. التراجع ممكن طالما لم يتغيّر معرف الجهاز.
+      <p style={{ color: "#555", fontSize: 14, marginBottom: 18 }}>
+        صوّت كضيف — بدون تسجيل. يمكنك التراجع طالما لم يتغيّر معرف الجهاز.
       </p>
 
       {orderedSlots.map((s) => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
 
-        const title = w?.title_ar ?? "عنوان غير متاح";
         const genreName = g?.name_ar ?? "";
+        const title = w?.title_ar ?? "عنوان غير متاح";
+        const synopsis = w?.synopsis_ar ?? "";
         const count = voteCounts[s.work_id] ?? 0;
         const voted = myVotes.has(s.work_id);
 
@@ -215,27 +203,31 @@ export default function ArabicExplore() {
               marginBottom: 14,
               display: "flex",
               justifyContent: "space-between",
+              gap: 14,
               alignItems: "center",
             }}
           >
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, color: "#666" }}>{genreName}</div>
-              <strong style={{ fontSize: 20 }}>{title}</strong>
+              <strong style={{ fontSize: 20, display: "block" }}>{title}</strong>
+
+              {synopsis && <div style={clamp3}>{synopsis}</div>}
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>{count}</div>
+            <div style={{ textAlign: "center", minWidth: 110 }}>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{count}</div>
               <button
                 onClick={() => toggleVote(s.work_id)}
                 style={{
                   marginTop: 6,
-                  padding: "6px 14px",
-                  borderRadius: 8,
+                  padding: "8px 14px",
+                  borderRadius: 10,
                   border: "none",
                   cursor: "pointer",
                   background: voted ? "#ef4444" : "#2563eb",
                   color: "#fff",
-                  fontWeight: 700,
+                  fontWeight: 800,
+                  width: "100%",
                 }}
               >
                 {voted ? "تراجع" : "صوّت"}
@@ -249,3 +241,14 @@ export default function ArabicExplore() {
     </main>
   );
 }
+
+const clamp3: React.CSSProperties = {
+  marginTop: 6,
+  color: "#333",
+  opacity: 0.9,
+  lineHeight: 1.6,
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical" as any,
+  overflow: "hidden",
+};
