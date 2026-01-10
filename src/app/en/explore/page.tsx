@@ -5,31 +5,26 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type SlotRowEN = { work_id: string; genre_id: string };
+type SlotRow = { work_id: string; genre_id: string };
 
-type WorkRowEN = {
+type WorkRow = {
   id: string;
   title_ar: string;
-  author_ar?: string | null;
-  author_url?: string | null;
-  publication_year?: number | null;
-  publisher?: string | null;
-  notable_awards?: string | null;
   synopsis_ar?: string | null;
   synopsis_en?: string | null;
 };
 
-type GenreRowEN = { id: string; name_en: string; sort_order: number };
+type GenreRow = { id: string; name_en: string; sort_order: number };
 
-export function EnglishExplore() {
+export default function EnglishExplore() {
   const supabase = useMemo(() => createClient(), []);
 
   const [fingerprint, setFingerprint] = useState<string | null>(null);
   const [roundId, setRoundId] = useState<string | null>(null);
 
-  const [slots, setSlots] = useState<SlotRowEN[]>([]);
-  const [works, setWorks] = useState<Record<string, WorkRowEN>>({});
-  const [genres, setGenres] = useState<Record<string, GenreRowEN>>({});
+  const [slots, setSlots] = useState<SlotRow[]>([]);
+  const [works, setWorks] = useState<Record<string, WorkRow>>({});
+  const [genres, setGenres] = useState<Record<string, GenreRow>>({});
 
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
@@ -63,6 +58,7 @@ export function EnglishExplore() {
       .maybeSingle();
 
     if (!r.data?.id) return;
+
     const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
@@ -71,7 +67,7 @@ export function EnglishExplore() {
       .select("work_id, genre_id")
       .eq("round_id", activeRoundId);
 
-    const slotRows = (sRes.data as SlotRowEN[]) ?? [];
+    const slotRows = (sRes.data as SlotRow[]) ?? [];
     setSlots(slotRows);
 
     const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
@@ -79,12 +75,10 @@ export function EnglishExplore() {
 
     const wRes = await supabase
       .from("works")
-      .select(
-        "id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar, synopsis_en"
-      )
+      .select("id, title_ar, synopsis_ar, synopsis_en")
       .in("id", workIds);
 
-    const wMap: Record<string, WorkRowEN> = {};
+    const wMap: Record<string, WorkRow> = {};
     (wRes.data ?? []).forEach((w: any) => (wMap[w.id] = w));
     setWorks(wMap);
 
@@ -93,7 +87,7 @@ export function EnglishExplore() {
       .select("id, name_en, sort_order")
       .in("id", genreIds);
 
-    const gMap: Record<string, GenreRowEN> = {};
+    const gMap: Record<string, GenreRow> = {};
     (gRes.data ?? []).forEach((g: any) => (gMap[g.id] = g));
     setGenres(gMap);
 
@@ -108,13 +102,13 @@ export function EnglishExplore() {
     });
     setVoteCounts(counts);
 
-    const { data: myVotes } = await supabase
+    const { data: mine } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId)
       .eq("fingerprint", fingerprint);
 
-    setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
+    setMyVotes(new Set((mine ?? []).map((v: any) => v.work_id)));
   }
 
   async function toggleVote(workId: string) {
@@ -167,6 +161,9 @@ export function EnglishExplore() {
       }}
     >
       <h1 style={{ marginTop: 0 }}>Voting</h1>
+      <p style={{ color: "#555", fontSize: 14, marginBottom: 18 }}>
+        Vote as a guest. Undo works while your device id stays the same.
+      </p>
 
       {orderedSlots.map((s) => {
         const g = genres[s.genre_id];
@@ -174,15 +171,7 @@ export function EnglishExplore() {
 
         const genreName = g?.name_en ?? "";
         const title = w?.title_ar ?? "Title unavailable";
-
         const synopsis = (w?.synopsis_en || w?.synopsis_ar || "").trim();
-        const awards = (w?.notable_awards || "").trim();
-
-        const authorName = (w?.author_ar || "").trim();
-        const authorUrl = (w?.author_url || "").trim();
-        const year = w?.publication_year ?? null;
-        const publisher = (w?.publisher || "").trim();
-
         const count = voteCounts[s.work_id] ?? 0;
         const voted = myVotes.has(s.work_id);
 
@@ -205,55 +194,7 @@ export function EnglishExplore() {
                 {genreName}
               </div>
               <strong style={{ fontSize: 20, display: "block" }}>{title}</strong>
-
-              {/* Meta row */}
-              <div
-                style={{
-                  marginTop: 6,
-                  color: "#333",
-                  opacity: 0.9,
-                  fontSize: 13,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 10,
-                }}
-              >
-                {authorName && (
-                  <span>
-                    Author:{" "}
-                    {authorUrl ? (
-                      <a
-                        href={authorUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ color: "#2563eb", textDecoration: "none", fontWeight: 700 }}
-                      >
-                        {authorName}
-                      </a>
-                    ) : (
-                      <span style={{ fontWeight: 700 }}>{authorName}</span>
-                    )}
-                  </span>
-                )}
-                {year && (
-                  <span>
-                    Year: <b>{year}</b>
-                  </span>
-                )}
-                {publisher && (
-                  <span>
-                    Publisher: <b>{publisher}</b>
-                  </span>
-                )}
-              </div>
-
-              {synopsis && <div style={clamp3EN}>{synopsis}</div>}
-
-              {awards && (
-                <div style={{ ...clamp3EN, marginTop: 6 }}>
-                  <b>Awards:</b> {awards}
-                </div>
-              )}
+              {synopsis && <div style={clamp3}>{synopsis}</div>}
             </div>
 
             <div style={{ textAlign: "center", minWidth: 110 }}>
@@ -284,7 +225,7 @@ export function EnglishExplore() {
   );
 }
 
-const clamp3EN: React.CSSProperties = {
+const clamp3: React.CSSProperties = {
   marginTop: 6,
   color: "#333",
   opacity: 0.9,
