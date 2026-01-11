@@ -33,7 +33,7 @@ export default function EnglishHome() {
     });
 
     if (res.status === 409) return setMsg("This email is already registered.");
-    if (!res.ok) return setMsg("Failed. Please check your email.");
+    if (!res.ok) return setMsg("Failed to save. Please check your email.");
 
     setMsg("Saved for the draw 🎉");
     setEmail("");
@@ -49,14 +49,37 @@ export default function EnglishHome() {
           "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
         color: "#fff",
         fontFamily: "system-ui, Arial",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+      {/* Contrast overlay (fix readability) */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(900px 420px at 50% 20%, rgba(0,0,0,0.32), transparent 60%), linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.58))",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
         <div style={{ marginBottom: 14 }}>
           <EntaShowLogo variant="en" />
         </div>
 
-        <p style={{ fontSize: 18, opacity: 0.9, lineHeight: 1.9, marginTop: 10 }}>
+        <p
+          style={{
+            fontSize: 20,
+            opacity: 1,
+            lineHeight: 1.9,
+            marginTop: 10,
+            color: "rgba(255,255,255,0.94)",
+            textShadow: "0 2px 12px rgba(0,0,0,0.55)",
+          }}
+        >
           Vote as a guest — no login.
           <br />
           Join the random draw for set visits and more rewards.
@@ -72,6 +95,7 @@ export default function EnglishHome() {
               color: "#0b0b0f",
               background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
               fontWeight: 800,
+              boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
             }}
           >
             Start voting
@@ -83,13 +107,14 @@ export default function EnglishHome() {
               padding: "12px 16px",
               borderRadius: 14,
               textDecoration: "none",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(255,255,255,0.06)",
-              fontWeight: 650,
+              color: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(0,0,0,0.25)",
+              fontWeight: 700,
+              backdropFilter: "blur(10px)",
             }}
           >
-            Submit your script (Independent)
+            Submit script (Independent)
           </a>
 
           <a
@@ -98,28 +123,47 @@ export default function EnglishHome() {
               padding: "12px 16px",
               borderRadius: 14,
               textDecoration: "none",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(255,255,255,0.06)",
-              fontWeight: 650,
+              color: "rgba(255,255,255,0.95)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(0,0,0,0.25)",
+              fontWeight: 700,
+              backdropFilter: "blur(10px)",
             }}
           >
             العربية
           </a>
         </div>
 
+        {/* Rewards email card */}
         <section
           style={{
             marginTop: 34,
             padding: 18,
             borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.18)",
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.22)",
+            background: "rgba(0,0,0,0.35)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>Rewards draw 🎁</h3>
-          <p style={{ opacity: 0.9, lineHeight: 1.7 }}>
+          <h3
+            style={{
+              marginTop: 0,
+              color: "rgba(255,255,255,0.95)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
+            }}
+          >
+            Rewards draw 🎁
+          </h3>
+
+          <p
+            style={{
+              opacity: 1,
+              lineHeight: 1.7,
+              color: "rgba(255,255,255,0.90)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
+            }}
+          >
             Enter your email to join the random draw.
             Your email will be stored for this purpose only, and we may contact winners.
           </p>
@@ -133,11 +177,13 @@ export default function EnglishHome() {
                 minWidth: 260,
                 padding: 10,
                 borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.18)",
-                background: "rgba(0,0,0,0.35)",
+                border: "1px solid rgba(255,255,255,0.22)",
+                background: "rgba(255,255,255,0.10)",
                 color: "#fff",
+                outline: "none",
               }}
             />
+
             <button
               onClick={saveEmail}
               style={{
@@ -145,16 +191,17 @@ export default function EnglishHome() {
                 borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
-                fontWeight: 800,
+                fontWeight: 900,
                 background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
                 color: "#0b0b0f",
+                boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
               }}
             >
               Save email
             </button>
           </div>
 
-          {msg && <p style={{ marginTop: 10 }}>{msg}</p>}
+          {msg && <p style={{ marginTop: 10, color: "rgba(255,255,255,0.92)" }}>{msg}</p>}
         </section>
       </div>
     </main>
