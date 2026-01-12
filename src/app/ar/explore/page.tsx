@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import SiteFooter from "@/components/SiteFooter";
 
+
+
 type SlotRow = { work_id: string; genre_id: string };
 
 type WorkRow = {
@@ -203,6 +205,11 @@ export default function ArabicExplore() {
       )}
 
       <h1 style={{ marginTop: 0 }}>التصويت</h1>
+<p style={{ marginTop: 8, color: "#555", fontSize: 14, lineHeight: 1.7 }}>
+  ملاحظة: يمكنك التصويت مرة واحدة فقط لكل عمل خلال الجولة.
+  التراجع متاح فقط خلال نفس الجلسة وعلى نفس الجهاز.
+</p>
+
 
       {orderedSlots.map((s) => {
         const g = genres[s.genre_id];

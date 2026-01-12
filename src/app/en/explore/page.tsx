@@ -161,6 +161,11 @@ export default function EnglishExplore() {
       }}
     >
       <h1>Voting</h1>
+<p style={{ marginTop: 8, color: "#555", fontSize: 14, lineHeight: 1.7 }}>
+  Note: You can vote only once per title per round.
+  Undo is available only during the same session on the same device.
+</p>
+
 
       {orderedSlots.map(s => {
         const g = genres[s.genre_id];
