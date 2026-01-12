@@ -1,3 +1,4 @@
+// src/app/ar/explore/page.tsx
 "use client";
 
 export const dynamic = "force-dynamic";
@@ -19,11 +20,7 @@ type WorkRow = {
   synopsis_ar?: string | null;
 };
 
-type GenreRow = {
-  id: string;
-  name_ar: string;
-  sort_order: number;
-};
+type GenreRow = { id: string; name_ar: string; sort_order: number };
 
 export default function ArabicExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -37,7 +34,13 @@ export default function ArabicExplore() {
 
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState<string>("");
+
+  useEffect(() => {
+    if (!msg) return;
+    const t = setTimeout(() => setMsg(""), 3500);
+    return () => clearTimeout(t);
+  }, [msg]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -53,11 +56,10 @@ export default function ArabicExplore() {
   useEffect(() => {
     if (!fingerprint) return;
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fingerprint]);
 
   async function load() {
-    setMsg("");
-
     const r = await supabase
       .from("rounds")
       .select("id")
@@ -77,12 +79,14 @@ export default function ArabicExplore() {
     const slotRows = (sRes.data as SlotRow[]) ?? [];
     setSlots(slotRows);
 
-    const workIds = Array.from(new Set(slotRows.map(s => s.work_id)));
-    const genreIds = Array.from(new Set(slotRows.map(s => s.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
 
     const wRes = await supabase
       .from("works")
-      .select("id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar")
+      .select(
+        "id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar"
+      )
       .in("id", workIds);
 
     const wMap: Record<string, WorkRow> = {};
@@ -120,12 +124,15 @@ export default function ArabicExplore() {
 
   async function toggleVote(workId: string) {
     if (!fingerprint || !roundId) return;
-    setMsg("");
 
     const voted = myVotes.has(workId);
 
     const url = voted
-      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      ? `/api/guest-vote?roundId=${encodeURIComponent(
+          roundId
+        )}&workId=${encodeURIComponent(
+          workId
+        )}&fingerprint=${encodeURIComponent(fingerprint)}`
       : "/api/guest-vote";
 
     const res = await fetch(url, {
@@ -144,6 +151,15 @@ export default function ArabicExplore() {
     }
 
     await load();
+    setMsg(voted ? "تم التراجع ✅" : "تم التصويت ✅");
+  }
+
+  if (!fingerprint) {
+    return (
+      <main dir="rtl" style={{ textAlign: "center", marginTop: 40 }}>
+        <p>جارٍ التحميل…</p>
+      </main>
+    );
   }
 
   const orderedSlots = [...slots].sort(
@@ -165,72 +181,99 @@ export default function ArabicExplore() {
         color: "#000",
       }}
     >
-      <h1>التصويت</h1>
+      {msg && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "sticky",
+            top: 8,
+            zIndex: 50,
+            marginBottom: 12,
+            padding: "10px 12px",
+            borderRadius: 12,
+            border: "1px solid #ddd",
+            background: "#111",
+            color: "#fff",
+            fontWeight: 800,
+          }}
+        >
+          {msg}
+        </div>
+      )}
 
-      {orderedSlots.map(s => {
+      <h1 style={{ marginTop: 0 }}>التصويت</h1>
+
+      {orderedSlots.map((s) => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
         if (!g || !w) return null;
 
+        const voted = myVotes.has(s.work_id);
+        const synopsis = (w.synopsis_ar || "").trim();
+        const count = voteCounts[s.work_id] ?? 0;
+
         return (
-          <div key={s.work_id} style={card}>
-            <div>
-              <div style={muted}>{g.name_ar}</div>
-              <strong style={title}>{w.title_ar}</strong>
-              {w.synopsis_ar && <div style={clamp3}>{w.synopsis_ar}</div>}
+          <div
+            key={s.work_id}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 14,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 14,
+              alignItems: "center",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, color: "#666" }}>
+                {g.name_ar}
+              </div>
+              <strong
+                style={{ fontSize: 20, display: "block" }}
+              >
+                {w.title_ar}
+              </strong>
+              {synopsis && (
+                <div style={clamp3}>{synopsis}</div>
+              )}
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <div style={count}>{voteCounts[s.work_id] ?? 0}</div>
+            <div style={{ textAlign: "center", minWidth: 110 }}>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>
+                {count}
+              </div>
               <button
                 onClick={() => toggleVote(s.work_id)}
-                style={button(myVotes.has(s.work_id))}
+                style={{
+                  marginTop: 6,
+                  padding: "8px 14px",
+                  borderRadius: 10,
+                  border: "none",
+                  cursor: "pointer",
+                  background: voted ? "#ef4444" : "#2563eb",
+                  color: "#fff",
+                  fontWeight: 800,
+                  width: "100%",
+                }}
               >
-                {myVotes.has(s.work_id) ? "تراجع" : "صوّت"}
+                {voted ? "تراجع" : "صوّت"}
               </button>
             </div>
           </div>
         );
       })}
 
-      {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
-
-      <p style={{ marginTop: 18 }}>
-        <a href="/ar" style={{ fontWeight: 700 }}>← العودة للرئيسية</a>
-      </p>
-
       <SiteFooter lang="ar" />
     </main>
   );
 }
 
-const card: React.CSSProperties = {
-  border: "1px solid #ddd",
-  borderRadius: 12,
-  padding: 16,
-  marginBottom: 14,
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 14,
-};
-
-const title: React.CSSProperties = { fontSize: 20 };
-const muted: React.CSSProperties = { fontSize: 13, color: "#666" };
-const count: React.CSSProperties = { fontSize: 22, fontWeight: 800 };
-
-const button = (voted: boolean): React.CSSProperties => ({
-  marginTop: 6,
-  padding: "8px 14px",
-  borderRadius: 10,
-  border: "none",
-  cursor: "pointer",
-  background: voted ? "#ef4444" : "#2563eb",
-  color: "#fff",
-  fontWeight: 800,
-});
-
 const clamp3: React.CSSProperties = {
   marginTop: 6,
+  color: "#333",
   opacity: 0.9,
   lineHeight: 1.6,
   display: "-webkit-box",
