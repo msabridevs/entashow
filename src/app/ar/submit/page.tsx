@@ -100,7 +100,7 @@ export default function SubmitAR() {
         <b>الحدود:</b> 80 · 240 · 1200 حرف
       </p>
 
-      <label style={labelStyle}>البريد الإلكتروني (اختياري)</label>
+      <label style={labelStyle}>البريد الإلكتروني</label>
       <input
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -155,7 +155,7 @@ export default function SubmitAR() {
       {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
 
       <p style={{ marginTop: 18, opacity: 0.75, fontSize: 13, lineHeight: 1.6 }}>
-        ملاحظة: الحد اليومي هو 3 محاولات لكل جهاز لمنع الإساءة.
+        ملاحظة: الحد اليومي: 3 مساهمات.
       </p>
     </main>
   );

@@ -99,7 +99,7 @@ export default function SubmitEN() {
         Limits: Title {LIMIT_TITLE}, Pitch {LIMIT_PITCH}, Excerpt {LIMIT_EXCERPT} characters.
       </p>
 
-      <label style={labelStyle}>Email (optional)</label>
+      <label style={labelStyle}>Email </label>
       <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" style={inputStyle} />
 
       <label style={labelStyle}>
@@ -144,7 +144,7 @@ export default function SubmitEN() {
       {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
 
       <p style={{ marginTop: 18, opacity: 0.75, fontSize: 13, lineHeight: 1.6 }}>
-        Note: Daily limit is 3 submissions per device to prevent spam.
+        Note: Daily limit: 3 submissions.
       </p>
     </main>
   );

@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import EntaShowLogo from "@/components/EntaShowLogo";
+import SiteFooter from "@/components/SiteFooter";
 
 function getFP(): string {
   const key = "enta_show_fp";
@@ -53,7 +54,6 @@ export default function EnglishHome() {
         overflow: "hidden",
       }}
     >
-      {/* Contrast overlay (fix readability) */}
       <div
         aria-hidden="true"
         style={{
@@ -66,6 +66,33 @@ export default function EnglishHome() {
       />
 
       <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
+        <nav
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+            marginBottom: 14,
+            opacity: 0.95,
+          }}
+        >
+          <a href="/en/about" style={topLink}>
+            About
+          </a>
+          <a href="/en/contact" style={topLink}>
+            Contact
+          </a>
+          <a href="/privacy" style={topLink}>
+            Privacy
+          </a>
+          <a href="/terms" style={topLink}>
+            Terms
+          </a>
+          <a href="/ar" style={topLink}>
+            العربية
+          </a>
+        </nav>
+
         <div style={{ marginBottom: 14 }}>
           <EntaShowLogo variant="en" />
         </div>
@@ -73,7 +100,6 @@ export default function EnglishHome() {
         <p
           style={{
             fontSize: 20,
-            opacity: 1,
             lineHeight: 1.9,
             marginTop: 10,
             color: "rgba(255,255,255,0.94)",
@@ -86,86 +112,19 @@ export default function EnglishHome() {
         </p>
 
         <div style={{ marginTop: 18, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a
-            href="/en/explore"
-            style={{
-              padding: "12px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              color: "#0b0b0f",
-              background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
-              fontWeight: 800,
-              boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
-            }}
-          >
+          <a href="/en/explore" style={primaryBtn}>
             Start voting
           </a>
-
-          <a
-            href="/en/submit"
-            style={{
-              padding: "12px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              color: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(255,255,255,0.28)",
-              background: "rgba(0,0,0,0.25)",
-              fontWeight: 700,
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            Submit script (Independent)
-          </a>
-
-          <a
-            href="/ar"
-            style={{
-              padding: "12px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              color: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(255,255,255,0.28)",
-              background: "rgba(0,0,0,0.25)",
-              fontWeight: 700,
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            العربية
+          <a href="/en/submit" style={ghostBtn}>
+            Submit your idea (Independent)
           </a>
         </div>
 
-        {/* Rewards email card */}
-        <section
-          style={{
-            marginTop: 34,
-            padding: 18,
-            borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.22)",
-            background: "rgba(0,0,0,0.35)",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
-          }}
-        >
-          <h3
-            style={{
-              marginTop: 0,
-              color: "rgba(255,255,255,0.95)",
-              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
-            }}
-          >
-            Rewards draw 🎁
-          </h3>
+        <section style={card}>
+          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>Rewards draw 🎁</h3>
 
-          <p
-            style={{
-              opacity: 1,
-              lineHeight: 1.7,
-              color: "rgba(255,255,255,0.90)",
-              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
-            }}
-          >
+          <p style={{ lineHeight: 1.7, color: "rgba(255,255,255,0.90)" }}>
             Enter your email to join the random draw.
-            Your email will be stored for this purpose only, and we may contact winners.
           </p>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -173,37 +132,74 @@ export default function EnglishHome() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@example.com"
-              style={{
-                minWidth: 260,
-                padding: 10,
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.22)",
-                background: "rgba(255,255,255,0.10)",
-                color: "#fff",
-                outline: "none",
-              }}
+              style={input}
             />
-
-            <button
-              onClick={saveEmail}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 10,
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 900,
-                background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
-                color: "#0b0b0f",
-                boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
-              }}
-            >
+            <button onClick={saveEmail} style={primaryBtn}>
               Save email
             </button>
           </div>
 
           {msg && <p style={{ marginTop: 10, color: "rgba(255,255,255,0.92)" }}>{msg}</p>}
         </section>
+
+        <div style={{ marginTop: 26 }}>
+          <SiteFooter lang="en" />
+        </div>
       </div>
     </main>
   );
 }
+
+const topLink: React.CSSProperties = {
+  color: "rgba(255,255,255,0.92)",
+  textDecoration: "none",
+  fontWeight: 800,
+  padding: "8px 10px",
+  borderRadius: 10,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(0,0,0,0.18)",
+  backdropFilter: "blur(10px)",
+};
+
+const primaryBtn: React.CSSProperties = {
+  padding: "12px 16px",
+  borderRadius: 14,
+  textDecoration: "none",
+  color: "#0b0b0f",
+  background: "linear-gradient(90deg, #ff4fd8, #25d6ff)",
+  fontWeight: 900,
+  border: "none",
+  cursor: "pointer",
+  boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
+};
+
+const ghostBtn: React.CSSProperties = {
+  padding: "12px 16px",
+  borderRadius: 14,
+  textDecoration: "none",
+  color: "rgba(255,255,255,0.95)",
+  border: "1px solid rgba(255,255,255,0.28)",
+  background: "rgba(0,0,0,0.25)",
+  fontWeight: 700,
+  backdropFilter: "blur(10px)",
+};
+
+const card: React.CSSProperties = {
+  marginTop: 34,
+  padding: 18,
+  borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.22)",
+  background: "rgba(0,0,0,0.35)",
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
+};
+
+const input: React.CSSProperties = {
+  minWidth: 260,
+  padding: 10,
+  borderRadius: 10,
+  border: "1px solid rgba(255,255,255,0.22)",
+  background: "rgba(255,255,255,0.10)",
+  color: "#fff",
+  outline: "none",
+};
