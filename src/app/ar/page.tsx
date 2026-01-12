@@ -4,7 +4,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-
+import SiteFooter from "@/components/SiteFooter";
 import { useEffect, useState } from "react";
 import EntaShowLogo from "@/components/EntaShowLogo";
 

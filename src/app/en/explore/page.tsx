@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SiteFooter from "@/components/SiteFooter";
 
 type SlotRow = { work_id: string; genre_id: string };
 
@@ -14,7 +15,11 @@ type WorkRow = {
   synopsis_en?: string | null;
 };
 
-type GenreRow = { id: string; name_en: string; sort_order: number };
+type GenreRow = {
+  id: string;
+  name_en: string;
+  sort_order: number;
+};
 
 export default function EnglishExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -44,7 +49,6 @@ export default function EnglishExplore() {
   useEffect(() => {
     if (!fingerprint) return;
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fingerprint]);
 
   async function load() {
@@ -58,7 +62,6 @@ export default function EnglishExplore() {
       .maybeSingle();
 
     if (!r.data?.id) return;
-
     const activeRoundId = r.data.id;
     setRoundId(activeRoundId);
 
@@ -70,8 +73,8 @@ export default function EnglishExplore() {
     const slotRows = (sRes.data as SlotRow[]) ?? [];
     setSlots(slotRows);
 
-    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
-    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map(s => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map(s => s.genre_id)));
 
     const wRes = await supabase
       .from("works")
@@ -102,51 +105,48 @@ export default function EnglishExplore() {
     });
     setVoteCounts(counts);
 
-    const { data: mine } = await supabase
+    const { data: myVotes } = await supabase
       .from("guest_votes")
       .select("work_id")
       .eq("round_id", activeRoundId)
       .eq("fingerprint", fingerprint);
 
-    setMyVotes(new Set((mine ?? []).map((v: any) => v.work_id)));
+    setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-  async function toggleVote(workId: string) {
-    if (!fingerprint || !roundId) return;
-    setMsg("");
+async function toggleVote(workId: string) {
+  if (!fingerprint || !roundId) return;
+  setMsg("");
 
-    const hasVoted = myVotes.has(workId);
+  const voted = myVotes.has(workId);
 
-    const url = hasVoted
-      ? `/api/guest-vote?roundId=${encodeURIComponent(roundId)}&workId=${encodeURIComponent(
-          workId
-        )}&fingerprint=${encodeURIComponent(fingerprint)}`
-      : "/api/guest-vote";
+  const url = voted
+    ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+    : "/api/guest-vote";
 
-    const res = await fetch(url, {
-      method: hasVoted ? "DELETE" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: hasVoted ? null : JSON.stringify({ roundId, workId, fingerprint }),
-    });
+  const res = await fetch(url, {
+    method: voted ? "DELETE" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
+  });
 
-    if (!res.ok) {
-      setMsg(hasVoted ? "Undo failed." : "Vote failed.");
+  if (!res.ok) {
+    if (res.status === 409) {
+      setMsg("You can’t vote twice for the same title in the same round.");
       return;
     }
-
-    await load();
+    setMsg(voted ? "Undo failed." : "Vote failed.");
+    return;
   }
 
-  if (!fingerprint) {
-    return (
-      <main style={{ textAlign: "center", marginTop: 40 }}>
-        <p>Loading…</p>
-      </main>
-    );
-  }
+  await load();
+}
+
 
   const orderedSlots = [...slots].sort(
-    (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
+    (a, b) =>
+      (genres[a.genre_id]?.sort_order ?? 999) -
+      (genres[b.genre_id]?.sort_order ?? 999)
   );
 
   return (
@@ -155,65 +155,36 @@ export default function EnglishExplore() {
         maxWidth: 900,
         margin: "40px auto",
         padding: 16,
+        paddingBottom: 80,
         fontFamily: "system-ui, Arial",
         background: "#fff",
         color: "#000",
       }}
     >
-      <h1 style={{ marginTop: 0 }}>Voting</h1>
-      <p style={{ color: "#555", fontSize: 14, marginBottom: 18 }}>
-        Vote as a guest. Undo works while your device id stays the same.
-      </p>
+      <h1>Voting</h1>
 
-      {orderedSlots.map((s) => {
+      {orderedSlots.map(s => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
+        if (!g || !w) return null;
 
-        const genreName = g?.name_en ?? "";
-        const title = w?.title_ar ?? "Title unavailable";
-        const synopsis = (w?.synopsis_en || w?.synopsis_ar || "").trim();
-        const count = voteCounts[s.work_id] ?? 0;
-        const voted = myVotes.has(s.work_id);
+        const synopsis = w.synopsis_en || w.synopsis_ar || "";
 
         return (
-          <div
-            key={s.work_id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 14,
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 14,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: "#666", textTransform: "uppercase" }}>
-                {genreName}
-              </div>
-              <strong style={{ fontSize: 20, display: "block" }}>{title}</strong>
+          <div key={s.work_id} style={card}>
+            <div>
+              <div style={muted}>{g.name_en}</div>
+              <strong style={title}>{w.title_ar}</strong>
               {synopsis && <div style={clamp3}>{synopsis}</div>}
             </div>
 
-            <div style={{ textAlign: "center", minWidth: 110 }}>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>{count}</div>
+            <div style={{ textAlign: "center" }}>
+              <div style={count}>{voteCounts[s.work_id] ?? 0}</div>
               <button
                 onClick={() => toggleVote(s.work_id)}
-                style={{
-                  marginTop: 6,
-                  padding: "8px 14px",
-                  borderRadius: 10,
-                  border: "none",
-                  cursor: "pointer",
-                  background: voted ? "#ef4444" : "#2563eb",
-                  color: "#fff",
-                  fontWeight: 800,
-                  width: "100%",
-                }}
+                style={button(myVotes.has(s.work_id))}
               >
-                {voted ? "Undo" : "Vote"}
+                {myVotes.has(s.work_id) ? "Undo" : "Vote"}
               </button>
             </div>
           </div>
@@ -221,13 +192,39 @@ export default function EnglishExplore() {
       })}
 
       {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
+
+      <SiteFooter lang="en" />
     </main>
   );
 }
 
+const card: React.CSSProperties = {
+  border: "1px solid #ddd",
+  borderRadius: 12,
+  padding: 16,
+  marginBottom: 14,
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 14,
+};
+
+const title: React.CSSProperties = { fontSize: 20 };
+const muted: React.CSSProperties = { fontSize: 13, color: "#666" };
+const count: React.CSSProperties = { fontSize: 22, fontWeight: 800 };
+
+const button = (voted: boolean): React.CSSProperties => ({
+  marginTop: 6,
+  padding: "8px 14px",
+  borderRadius: 10,
+  border: "none",
+  cursor: "pointer",
+  background: voted ? "#ef4444" : "#2563eb",
+  color: "#fff",
+  fontWeight: 800,
+});
+
 const clamp3: React.CSSProperties = {
   marginTop: 6,
-  color: "#333",
   opacity: 0.9,
   lineHeight: 1.6,
   display: "-webkit-box",

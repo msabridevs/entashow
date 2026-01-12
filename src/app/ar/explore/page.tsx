@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SiteFooter from "@/components/SiteFooter";
 
 type SlotRow = { work_id: string; genre_id: string };
 
@@ -18,7 +19,11 @@ type WorkRow = {
   synopsis_ar?: string | null;
 };
 
-type GenreRow = { id: string; name_ar: string; sort_order: number };
+type GenreRow = {
+  id: string;
+  name_ar: string;
+  sort_order: number;
+};
 
 export default function ArabicExplore() {
   const supabase = useMemo(() => createClient(), []);
@@ -48,7 +53,6 @@ export default function ArabicExplore() {
   useEffect(() => {
     if (!fingerprint) return;
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fingerprint]);
 
   async function load() {
@@ -73,14 +77,12 @@ export default function ArabicExplore() {
     const slotRows = (sRes.data as SlotRow[]) ?? [];
     setSlots(slotRows);
 
-    const workIds = Array.from(new Set(slotRows.map((s) => s.work_id)));
-    const genreIds = Array.from(new Set(slotRows.map((s) => s.genre_id)));
+    const workIds = Array.from(new Set(slotRows.map(s => s.work_id)));
+    const genreIds = Array.from(new Set(slotRows.map(s => s.genre_id)));
 
     const wRes = await supabase
       .from("works")
-      .select(
-        "id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar"
-      )
+      .select("id, title_ar, author_ar, author_url, publication_year, publisher, notable_awards, synopsis_ar")
       .in("id", workIds);
 
     const wMap: Record<string, WorkRow> = {};
@@ -116,42 +118,39 @@ export default function ArabicExplore() {
     setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-  async function toggleVote(workId: string) {
-    if (!fingerprint || !roundId) return;
-    setMsg("");
+async function toggleVote(workId: string) {
+  if (!fingerprint || !roundId) return;
+  setMsg("");
 
-    const hasVoted = myVotes.has(workId);
+  const voted = myVotes.has(workId);
 
-    const url = hasVoted
-      ? `/api/guest-vote?roundId=${encodeURIComponent(roundId)}&workId=${encodeURIComponent(
-          workId
-        )}&fingerprint=${encodeURIComponent(fingerprint)}`
-      : "/api/guest-vote";
+  const url = voted
+    ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+    : "/api/guest-vote";
 
-    const res = await fetch(url, {
-      method: hasVoted ? "DELETE" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: hasVoted ? null : JSON.stringify({ roundId, workId, fingerprint }),
-    });
+  const res = await fetch(url, {
+    method: voted ? "DELETE" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
+  });
 
-    if (!res.ok) {
-      setMsg(hasVoted ? "تعذّر التراجع." : "تعذّر التصويت.");
+  if (!res.ok) {
+    if (res.status === 409) {
+      setMsg("لا يمكن التصويت مرتين لنفس العمل في نفس الجولة.");
       return;
     }
-
-    await load();
+    setMsg(voted ? "تعذّر التراجع." : "تعذّر التصويت.");
+    return;
   }
 
-  if (!fingerprint) {
-    return (
-      <main dir="rtl" style={{ textAlign: "center", marginTop: 40 }}>
-        <p>جارٍ التحميل…</p>
-      </main>
-    );
-  }
+  await load();
+}
+
 
   const orderedSlots = [...slots].sort(
-    (a, b) => (genres[a.genre_id]?.sort_order ?? 999) - (genres[b.genre_id]?.sort_order ?? 999)
+    (a, b) =>
+      (genres[a.genre_id]?.sort_order ?? 999) -
+      (genres[b.genre_id]?.sort_order ?? 999)
   );
 
   return (
@@ -161,120 +160,34 @@ export default function ArabicExplore() {
         maxWidth: 900,
         margin: "40px auto",
         padding: 16,
+        paddingBottom: 80,
         fontFamily: "system-ui, Arial",
         background: "#fff",
         color: "#000",
       }}
     >
-      <h1 style={{ marginTop: 0 }}>التصويت</h1>
+      <h1>التصويت</h1>
 
-      {orderedSlots.map((s) => {
+      {orderedSlots.map(s => {
         const g = genres[s.genre_id];
         const w = works[s.work_id];
-
-        const genreName = g?.name_ar ?? "";
-        const title = w?.title_ar ?? "عنوان غير متاح";
-        const synopsis = (w?.synopsis_ar || "").trim();
-        const count = voteCounts[s.work_id] ?? 0;
-        const voted = myVotes.has(s.work_id);
-
-        const authorName = w?.author_ar || "";
-        const authorUrl = (w?.author_url || "").trim();
-        const year = w?.publication_year ?? null;
-        const publisher = (w?.publisher || "").trim();
-        const awards = (w?.notable_awards || "").trim();
+        if (!g || !w) return null;
 
         return (
-          <div
-            key={s.work_id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 14,
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 14,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: "#666" }}>{genreName}</div>
-              <strong style={{ fontSize: 20, display: "block" }}>{title}</strong>
-
-              {/* Meta row */}
-              <div
-                style={{
-                  marginTop: 6,
-                  color: "#333",
-                  opacity: 0.9,
-                  fontSize: 13,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 10,
-                }}
-              >
-                {authorName && (
-                  <span>
-                    المؤلف:{" "}
-                    {authorUrl ? (
-                      <a
-                        href={authorUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          color: "#2563eb",
-                          textDecoration: "none",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {authorName}
-                      </a>
-                    ) : (
-                      <span style={{ fontWeight: 700 }}>{authorName}</span>
-                    )}
-                  </span>
-                )}
-                {year && (
-                  <span>
-                    سنة النشر: <b>{year}</b>
-                  </span>
-                )}
-                {publisher && (
-                  <span>
-                    الناشر: <b>{publisher}</b>
-                  </span>
-                )}
-              </div>
-
-              {/* 3-line synopsis */}
-              {synopsis && <div style={clamp3}>{synopsis}</div>}
-
-              {/* Awards (3-line too) */}
-              {awards && (
-                <div style={{ ...clamp3, marginTop: 6 }}>
-                  <b>جوائز/ترشيحات:</b> {awards}
-                </div>
-              )}
+          <div key={s.work_id} style={card}>
+            <div>
+              <div style={muted}>{g.name_ar}</div>
+              <strong style={title}>{w.title_ar}</strong>
+              {w.synopsis_ar && <div style={clamp3}>{w.synopsis_ar}</div>}
             </div>
 
-            <div style={{ textAlign: "center", minWidth: 110 }}>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>{count}</div>
+            <div style={{ textAlign: "center" }}>
+              <div style={count}>{voteCounts[s.work_id] ?? 0}</div>
               <button
                 onClick={() => toggleVote(s.work_id)}
-                style={{
-                  marginTop: 6,
-                  padding: "8px 14px",
-                  borderRadius: 10,
-                  border: "none",
-                  cursor: "pointer",
-                  background: voted ? "#ef4444" : "#2563eb",
-                  color: "#fff",
-                  fontWeight: 800,
-                  width: "100%",
-                }}
+                style={button(myVotes.has(s.work_id))}
               >
-                {voted ? "تراجع" : "صوّت"}
+                {myVotes.has(s.work_id) ? "تراجع" : "صوّت"}
               </button>
             </div>
           </div>
@@ -282,13 +195,39 @@ export default function ArabicExplore() {
       })}
 
       {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
+
+      <SiteFooter lang="ar" />
     </main>
   );
 }
 
+const card: React.CSSProperties = {
+  border: "1px solid #ddd",
+  borderRadius: 12,
+  padding: 16,
+  marginBottom: 14,
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 14,
+};
+
+const title: React.CSSProperties = { fontSize: 20 };
+const muted: React.CSSProperties = { fontSize: 13, color: "#666" };
+const count: React.CSSProperties = { fontSize: 22, fontWeight: 800 };
+
+const button = (voted: boolean): React.CSSProperties => ({
+  marginTop: 6,
+  padding: "8px 14px",
+  borderRadius: 10,
+  border: "none",
+  cursor: "pointer",
+  background: voted ? "#ef4444" : "#2563eb",
+  color: "#fff",
+  fontWeight: 800,
+});
+
 const clamp3: React.CSSProperties = {
   marginTop: 6,
-  color: "#333",
   opacity: 0.9,
   lineHeight: 1.6,
   display: "-webkit-box",
@@ -296,4 +235,3 @@ const clamp3: React.CSSProperties = {
   WebkitBoxOrient: "vertical" as any,
   overflow: "hidden",
 };
-
