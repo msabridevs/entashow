@@ -114,34 +114,33 @@ export default function EnglishExplore() {
     setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-async function toggleVote(workId: string) {
-  if (!fingerprint || !roundId) return;
-  setMsg("");
+  async function toggleVote(workId: string) {
+    if (!fingerprint || !roundId) return;
+    setMsg("");
 
-  const voted = myVotes.has(workId);
+    const voted = myVotes.has(workId);
 
-  const url = voted
-    ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
-    : "/api/guest-vote";
+    const url = voted
+      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      : "/api/guest-vote";
 
-  const res = await fetch(url, {
-    method: voted ? "DELETE" : "POST",
-    headers: { "Content-Type": "application/json" },
-    body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
-  });
+    const res = await fetch(url, {
+      method: voted ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
+    });
 
-  if (!res.ok) {
-    if (res.status === 409) {
-      setMsg("You can’t vote twice for the same title in the same round.");
+    if (!res.ok) {
+      if (res.status === 409) {
+        setMsg("You can’t vote twice for the same title in the same round.");
+        return;
+      }
+      setMsg(voted ? "Undo failed." : "Vote failed.");
       return;
     }
-    setMsg(voted ? "Undo failed." : "Vote failed.");
-    return;
+
+    await load();
   }
-
-  await load();
-}
-
 
   const orderedSlots = [...slots].sort(
     (a, b) =>
@@ -192,6 +191,10 @@ async function toggleVote(workId: string) {
       })}
 
       {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
+
+      <p style={{ marginTop: 18 }}>
+        <a href="/en" style={{ fontWeight: 700 }}>← Back to home</a>
+      </p>
 
       <SiteFooter lang="en" />
     </main>

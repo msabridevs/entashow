@@ -118,34 +118,33 @@ export default function ArabicExplore() {
     setMyVotes(new Set((myVotes ?? []).map((v: any) => v.work_id)));
   }
 
-async function toggleVote(workId: string) {
-  if (!fingerprint || !roundId) return;
-  setMsg("");
+  async function toggleVote(workId: string) {
+    if (!fingerprint || !roundId) return;
+    setMsg("");
 
-  const voted = myVotes.has(workId);
+    const voted = myVotes.has(workId);
 
-  const url = voted
-    ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
-    : "/api/guest-vote";
+    const url = voted
+      ? `/api/guest-vote?roundId=${roundId}&workId=${workId}&fingerprint=${fingerprint}`
+      : "/api/guest-vote";
 
-  const res = await fetch(url, {
-    method: voted ? "DELETE" : "POST",
-    headers: { "Content-Type": "application/json" },
-    body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
-  });
+    const res = await fetch(url, {
+      method: voted ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: voted ? null : JSON.stringify({ roundId, workId, fingerprint }),
+    });
 
-  if (!res.ok) {
-    if (res.status === 409) {
-      setMsg("لا يمكن التصويت مرتين لنفس العمل في نفس الجولة.");
+    if (!res.ok) {
+      if (res.status === 409) {
+        setMsg("لا يمكن التصويت مرتين لنفس العمل في نفس الجولة.");
+        return;
+      }
+      setMsg(voted ? "تعذّر التراجع." : "تعذّر التصويت.");
       return;
     }
-    setMsg(voted ? "تعذّر التراجع." : "تعذّر التصويت.");
-    return;
+
+    await load();
   }
-
-  await load();
-}
-
 
   const orderedSlots = [...slots].sort(
     (a, b) =>
@@ -195,6 +194,10 @@ async function toggleVote(workId: string) {
       })}
 
       {msg && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{msg}</p>}
+
+      <p style={{ marginTop: 18 }}>
+        <a href="/ar" style={{ fontWeight: 700 }}>← العودة للرئيسية</a>
+      </p>
 
       <SiteFooter lang="ar" />
     </main>
