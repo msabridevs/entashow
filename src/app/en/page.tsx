@@ -45,7 +45,7 @@ export default function EnglishHome() {
       dir="ltr"
       style={{
         minHeight: "100vh",
-        padding: "48px 20px",
+        padding: "32px 20px",
         background:
           "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
         color: "#fff",
@@ -66,36 +66,34 @@ export default function EnglishHome() {
       />
 
       <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
-        <nav
+        <header
+          dir="ltr"
           style={{
             display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            justifyContent: "flex-start",
-            marginBottom: 14,
-            opacity: 0.95,
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            marginBottom: 18,
           }}
         >
-          <a href="/en/about" style={topLink}>
-            About
-          </a>
-          <a href="/en/contact" style={topLink}>
-            Contact
-          </a>
-          <a href="/privacy" style={topLink}>
-            Privacy
-          </a>
-          <a href="/terms" style={topLink}>
-            Terms
-          </a>
-          <a href="/ar" style={topLink}>
-            العربية
-          </a>
-        </nav>
-
-        <div style={{ marginBottom: 14 }}>
           <EntaShowLogo variant="en" />
-        </div>
+
+          <nav
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              justifyContent: "flex-start",
+              opacity: 0.95,
+            }}
+          >
+            <a href="/en/about" style={topLink}>About</a>
+            <a href="/en/contact" style={topLink}>Contact</a>
+            <a href="/privacy" style={topLink}>Privacy</a>
+            <a href="/terms" style={topLink}>Terms</a>
+            <a href="/ar" style={topLink}>العربية</a>
+          </nav>
+        </header>
 
         <p
           style={{
@@ -112,16 +110,14 @@ export default function EnglishHome() {
         </p>
 
         <div style={{ marginTop: 18, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="/en/explore" style={primaryBtn}>
-            Start voting
-          </a>
-          <a href="/en/submit" style={ghostBtn}>
-            Submit your idea (Independent)
-          </a>
+          <a href="/en/explore" style={primaryBtn}>Start voting</a>
+          <a href="/en/submit" style={ghostBtn}>Submit your idea (Independent)</a>
         </div>
 
         <section style={card}>
-          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>Rewards draw 🎁</h3>
+          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>
+            Rewards draw 🎁
+          </h3>
 
           <p style={{ lineHeight: 1.7, color: "rgba(255,255,255,0.90)" }}>
             Enter your email to join the random draw.
@@ -203,3 +199,4 @@ const input: React.CSSProperties = {
   color: "#fff",
   outline: "none",
 };
+
