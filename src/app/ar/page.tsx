@@ -76,18 +76,7 @@ export default function ArabicHome() {
             opacity: 0.95,
           }}
         >
-          <a href="/ar/about" style={topLink}>
-            من نحن
-          </a>
-          <a href="/ar/contact" style={topLink}>
-            تواصل معنا
-          </a>
-          <a href="/privacy" style={topLink}>
-            سياسة الخصوصية
-          </a>
-          <a href="/terms" style={topLink}>
-            الشروط
-          </a>
+         
           <a href="/en" style={topLink}>
             English
           </a>
