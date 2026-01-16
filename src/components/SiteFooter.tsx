@@ -1,11 +1,14 @@
+// 2) Replace this file completely
 // src/components/SiteFooter.tsx
+
 "use client";
 
 import { usePathname } from "next/navigation";
 
-export default function SiteFooter() {
+export default function SiteFooter({ lang }: { lang?: "ar" | "en" }) {
   const pathname = usePathname() || "/";
-  const isAR = pathname.startsWith("/ar");
+  const resolvedLang: "ar" | "en" = lang ?? (pathname.startsWith("/ar") ? "ar" : "en");
+  const isAR = resolvedLang === "ar";
 
   const links = isAR
     ? [
@@ -50,7 +53,6 @@ export default function SiteFooter() {
           {l.label}
         </a>
       ))}
-
       <span style={{ opacity: 0.7 }}>© {new Date().getFullYear()} Enta Show</span>
     </footer>
   );

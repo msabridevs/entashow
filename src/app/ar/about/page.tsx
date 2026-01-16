@@ -1,4 +1,5 @@
-import SiteFooter from "@/components/SiteFooter";
+// 1) Replace this file completely
+// src/app/ar/about/page.tsx
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,9 @@ export default function AboutAR() {
         margin: "40px auto",
         padding: 16,
         fontFamily: "system-ui, Arial",
+        background: "#fff",
+        color: "#000",
+        borderRadius: 12,
       }}
     >
       <h1 style={{ marginTop: 0 }}>من نحن</h1>
@@ -21,10 +25,9 @@ export default function AboutAR() {
       </p>
 
       <h2>كيف يعمل</h2>
-
       <ul style={{ lineHeight: 1.9 }}>
         <li>تُعرض أعمال مختارة تحت كل تصنيف، ويمكنك التصويت لها.</li>
-        <li>نستخدم مُعرّف الجهاز لمنع تكرار التصويت لنفس العمل داخل الجولة.</li>
+        <li>يُستخدم مُعرّف الجهاز لمنع تكرار التصويت لنفس العمل داخل الجولة.</li>
         <li>يمكنك تقديم فكرة/نص مستقل ليتم مراجعته وقد يُختار للتصويت ضمن فئة (مستقل).</li>
       </ul>
 
@@ -33,8 +36,7 @@ export default function AboutAR() {
           ← العودة للرئيسية
         </a>
       </p>
-
-      <SiteFooter lang="ar" />
     </main>
   );
 }
+
