@@ -21,7 +21,7 @@ export default function RootLayout({
         style={{
           margin: 0,
           background: "#0f1115",
-          color: "#fff",
+          color: "#ffffff",
           fontFamily: "system-ui, Arial",
         }}
       >
