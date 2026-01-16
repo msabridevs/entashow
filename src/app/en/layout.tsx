@@ -1,13 +1,11 @@
-export const dynamic = "force-dynamic";
+import type { Metadata } from "next";
 
-export default function EnLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div dir="ltr" lang="en" style={{ minHeight: "100vh" }}>
-      {children}
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "Enta Show",
+  description: "Enta Show — reader-driven cinema. Vote as a guest, join rewards draw, and submit an independent idea.",
+};
+
+export default function EnLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
+
