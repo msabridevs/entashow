@@ -47,7 +47,7 @@ export default function ArabicHome() {
         minHeight: "100vh",
         padding: "48px 20px",
         background:
-          "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
+          "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0f1115",
         color: "#fff",
         fontFamily: "system-ui, Arial",
         position: "relative",
