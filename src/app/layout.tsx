@@ -20,7 +20,7 @@ export default function RootLayout({
       <body
         style={{
           margin: 0,
-          background: "#0b0b0f",
+          background: "#0f1115",
           color: "#fff",
           fontFamily: "system-ui, Arial",
         }}
