@@ -1,76 +1,18 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://entashow.com"),
-  title: {
-    default: "Enta Show | أنت Show",
-    template: "%s | Enta Show",
-  },
+  title: "Enta Show | أنت Show",
   description:
     "Enta Show (أنت Show) — reader-driven cinema. Vote as a guest, join the rewards draw, and submit independent ideas.",
-  alternates: {
-    canonical: "https://entashow.com",
-    languages: {
-      ar: "https://entashow.com/ar",
-      en: "https://entashow.com/en",
-    },
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-  },
-  openGraph: {
-    type: "website",
-    url: "https://entashow.com",
-    siteName: "Enta Show",
-    title: "Enta Show | أنت Show",
-    description:
-      "Reader-driven cinema: vote as a guest, join rewards draw, and submit independent ideas.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Enta Show" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Enta Show | أنت Show",
-    description:
-      "Reader-driven cinema: vote as a guest, join rewards draw, and submit independent ideas.",
-    images: ["/og.png"],
-  },
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Enta Show",
-    alternateName: "أنت Show",
-    url: "https://entashow.com",
-    logo: "https://entashow.com/logo.png",
-  };
-
-  const siteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Enta Show",
-    url: "https://entashow.com",
-  };
-
   return (
     <html lang="en">
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
-        />
-      </head>
       <body
         style={{
           margin: 0,
@@ -80,7 +22,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <SiteHeader />
-        {children}
+
+        <div style={{ minHeight: "calc(100vh - 120px)" }}>{children}</div>
+
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 28px" }}>
+          <div
+            style={{
+              padding: "14px 12px",
+              borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.18)",
+              background: "rgba(0,0,0,0.35)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <SiteFooter />
+          </div>
+        </div>
       </body>
     </html>
   );
