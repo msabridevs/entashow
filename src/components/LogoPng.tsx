@@ -5,10 +5,10 @@ export default function LogoPng() {
     <Image
       src="/logo.png"
       alt="Enta Show"
-      width={48}
-      height={48}
+      width={72}
+      height={72}
       priority
-      style={{ width: 48, height: 48 }}
+      style={{ width: 72, height: 72, objectFit: "contain", }}
     />
   );
 }
