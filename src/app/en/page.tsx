@@ -76,18 +76,7 @@ export default function EnglishHome() {
             opacity: 0.95,
           }}
         >
-          <a href="/en/about" style={topLink}>
-            About
-          </a>
-          <a href="/en/contact" style={topLink}>
-            Contact
-          </a>
-          <a href="/privacy" style={topLink}>
-            Privacy
-          </a>
-          <a href="/terms" style={topLink}>
-            Terms
-          </a>
+          
           <a href="/ar" style={topLink}>
             العربية
           </a>
