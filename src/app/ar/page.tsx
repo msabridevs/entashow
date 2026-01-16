@@ -45,7 +45,7 @@ export default function ArabicHome() {
       dir="rtl"
       style={{
         minHeight: "100vh",
-        padding: "32px 20px",
+        padding: "48px 20px",
         background:
           "radial-gradient(1200px 600px at 10% 10%, #ffe7f3, transparent), radial-gradient(900px 500px at 90% 20%, #e6f3ff, transparent), #0b0b0f",
         color: "#fff",
@@ -66,35 +66,36 @@ export default function ArabicHome() {
       />
 
       <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
-        <header
-          dir="ltr"
+        <nav
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            marginBottom: 18,
+            gap: 12,
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+            marginBottom: 14,
+            opacity: 0.95,
           }}
         >
-          <EntaShowLogo variant="ar" />
+          <a href="/ar/about" style={topLink}>
+            من نحن
+          </a>
+          <a href="/ar/contact" style={topLink}>
+            تواصل معنا
+          </a>
+          <a href="/privacy" style={topLink}>
+            سياسة الخصوصية
+          </a>
+          <a href="/terms" style={topLink}>
+            الشروط
+          </a>
+          <a href="/en" style={topLink}>
+            English
+          </a>
+        </nav>
 
-          <nav
-            dir="rtl"
-            style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-              justifyContent: "flex-start",
-              opacity: 0.95,
-            }}
-          >
-            <a href="/ar/about" style={topLink}>من نحن</a>
-            <a href="/ar/contact" style={topLink}>تواصل معنا</a>
-            <a href="/privacy" style={topLink}>سياسة الخصوصية</a>
-            <a href="/terms" style={topLink}>الشروط</a>
-            <a href="/en" style={topLink}>English</a>
-          </nav>
-        </header>
+        <div style={{ marginBottom: 14 }}>
+          <EntaShowLogo variant="ar" />
+        </div>
 
         <p
           style={{
@@ -111,14 +112,16 @@ export default function ArabicHome() {
         </p>
 
         <div style={{ marginTop: 18, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a href="/ar/explore" style={primaryBtn}>ابدأ التصويت</a>
-          <a href="/ar/submit" style={ghostBtn}>قدّم فكرتك (مستقل)</a>
+          <a href="/ar/explore" style={primaryBtn}>
+            ابدأ التصويت
+          </a>
+          <a href="/ar/submit" style={ghostBtn}>
+            قدّم فكرتك (مستقل)
+          </a>
         </div>
 
         <section style={card}>
-          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>
-            سحب الجوائز 🎁
-          </h3>
+          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>سحب الجوائز 🎁</h3>
 
           <p style={{ lineHeight: 1.7, color: "rgba(255,255,255,0.90)" }}>
             أدخل بريدك الإلكتروني للمشاركة في السحب العشوائي.
@@ -200,4 +203,3 @@ const input: React.CSSProperties = {
   color: "#fff",
   outline: "none",
 };
-

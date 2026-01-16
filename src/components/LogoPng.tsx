@@ -1,21 +1,14 @@
-// src/components/LogoPng.tsx
 import Image from "next/image";
 
-export default function LogoPng({
-  alt,
-  height = 52,
-}: {
-  alt: string;
-  height?: number;
-}) {
+export default function LogoPng() {
   return (
     <Image
       src="/logo.png"
-      alt={alt}
-      width={Math.round(height * 4)}
-      height={height}
+      alt="Enta Show"
+      width={48}
+      height={48}
       priority
-      style={{ height, width: "auto", display: "block" }}
+      style={{ width: 48, height: 48 }}
     />
   );
 }
