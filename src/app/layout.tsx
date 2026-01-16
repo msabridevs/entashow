@@ -6,13 +6,17 @@ import SiteFooter from "@/components/SiteFooter";
 export const metadata: Metadata = {
   title: "Enta Show | أنت Show",
   description:
-    "Enta Show (أنت Show) — reader-driven cinema. Vote as a guest, join the rewards draw, and submit independent ideas.",
+    "أنت Show — سينما من القرّاء. صوّت كضيف، وشارك في سحب الجوائز، وقدّم أفكارًا مستقلة.",
   icons: { icon: "/favicon.ico" },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
+    <html lang="ar">
       <body
         style={{
           margin: 0,
@@ -25,7 +29,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div style={{ minHeight: "calc(100vh - 120px)" }}>{children}</div>
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 28px" }}>
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "18px 16px 28px",
+          }}
+        >
           <div
             style={{
               padding: "14px 12px",
