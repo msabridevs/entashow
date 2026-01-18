@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -23,31 +22,16 @@ export default function RootLayout({
           background: "#0f1115",
           color: "#ffffff",
           fontFamily: "system-ui, Arial",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <SiteHeader />
 
-        <div style={{ minHeight: "calc(100vh - 120px)" }}>{children}</div>
+        <main style={{ flex: 1 }}>{children}</main>
 
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "18px 16px 28px",
-          }}
-        >
-          <div
-            style={{
-              padding: "14px 12px",
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.18)",
-              background: "rgba(0,0,0,0.35)",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <SiteFooter />
-          </div>
-        </div>
+        <SiteFooter />
       </body>
     </html>
   );
