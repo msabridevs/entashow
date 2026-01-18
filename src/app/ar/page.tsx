@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import EntaShowLogo from "@/components/EntaShowLogo";
-import SiteFooter from "@/components/SiteFooter";
 
 function getFP(): string {
   const key = "enta_show_fp";
@@ -132,7 +131,6 @@ export default function ArabicHome() {
         </section>
 
         <div style={{ marginTop: 26 }}>
-          <SiteFooter lang="ar" />
         </div>
       </div>
     </main>
