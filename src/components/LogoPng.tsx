@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function LogoPng() {
   return (
     <Image
-      src="/logo-v3.png"
+      src="/logo3.png"
       alt="Enta Show"
       width={140}
       height={140}
