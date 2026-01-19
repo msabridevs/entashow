@@ -75,7 +75,6 @@ export default function ArabicHome() {
             opacity: 0.95,
           }}
         >
-         
           <a href="/en" style={topLink}>
             English
           </a>
@@ -108,8 +107,28 @@ export default function ArabicHome() {
           </a>
         </div>
 
+        {/* ✅ KPI / Indicators */}
+        <div style={kpiGrid}>
+          <div style={kpiCard}>
+            <div style={kpiNumber}>7</div>
+            <div style={kpiLabel}>أيام للجولة</div>
+          </div>
+
+          <div style={kpiCard}>
+            <div style={kpiNumber}>17</div>
+            <div style={kpiLabel}>تصنيف</div>
+          </div>
+
+          <div style={kpiCardWide}>
+            <div style={kpiNumber}>72</div>
+            <div style={kpiLabel}>ساعة للنهائي</div>
+          </div>
+        </div>
+
         <section style={card}>
-          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>سحب الجوائز 🎁</h3>
+          <h3 style={{ marginTop: 0, color: "rgba(255,255,255,0.95)" }}>
+            سحب الجوائز 🎁
+          </h3>
 
           <p style={{ lineHeight: 1.7, color: "rgba(255,255,255,0.90)" }}>
             أدخل بريدك الإلكتروني للمشاركة في السحب العشوائي.
@@ -130,8 +149,7 @@ export default function ArabicHome() {
           {msg && <p style={{ marginTop: 10, color: "rgba(255,255,255,0.92)" }}>{msg}</p>}
         </section>
 
-        <div style={{ marginTop: 26 }}>
-        </div>
+        <div style={{ marginTop: 26 }} />
       </div>
     </main>
   );
@@ -190,3 +208,44 @@ const input: React.CSSProperties = {
   color: "#fff",
   outline: "none",
 };
+
+/* ✅ KPI styles */
+const kpiGrid: React.CSSProperties = {
+  marginTop: 18,
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 14,
+};
+
+const kpiCard: React.CSSProperties = {
+  borderRadius: 16,
+  padding: "16px 14px",
+  border: "1px solid rgba(255,255,255,0.16)",
+  background: "rgba(0,0,0,0.35)",
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.25)",
+  textAlign: "center",
+};
+
+const kpiCardWide: React.CSSProperties = {
+  ...kpiCard,
+  gridColumn: "1 / -1",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 14,
+};
+
+const kpiNumber: React.CSSProperties = {
+  fontSize: 34,
+  fontWeight: 900,
+  lineHeight: 1,
+};
+
+const kpiLabel: React.CSSProperties = {
+  marginTop: 8,
+  fontSize: 14,
+  opacity: 0.85,
+  fontWeight: 700,
+};
+
